@@ -1,24 +1,21 @@
+using System.Collections.Generic;
+using Addons.ScenePaletter.States;
 using Godot;
-using System;
 
 namespace Addons.ScenePaletter;
 
 [Tool]
 public partial class Plugin : EditorPlugin
 {
-
-    public static Palette loadedPalette;
-    public static string state;
+    private Dictionary<string, WindowState> states;
+    public Palette palette;
+    public string state;
     private Window panel;
 
     public override void _EnterTree()
     {
-        panel = new Window();
-        // Add the panel as a dock in the editor
-        AddControlToDock(DockSlot.RightUl, panel);
-
-        GD.Print("Plugin enabled");
-        GD.Print($"DockPanel added: {panel.GetParent() != null}");
+        InitWindow();
+        InitStates();
     }
 
     public override void _ExitTree()
@@ -30,5 +27,35 @@ public partial class Plugin : EditorPlugin
         }
 
         GD.Print("Plugin disabled");
+    }
+
+    /* ============== Management ============== */
+
+    private void InitStates()
+    {
+        states = new Dictionary<string, WindowState>
+        {
+            {"Init",new Init(this)},
+            {"Loaded",new Loaded(this)},
+        };
+        state = "Init";
+        SwitchState(state);
+    }
+
+    private void InitWindow()
+    {
+        panel = new Window();
+        panel.Name = "Scene Palette";
+        AddControlToDock(DockSlot.RightUl, panel);
+    }
+
+    /* ============== Helpers ============== */
+
+    public void SwitchState(string stateName)
+    {
+        if (states.ContainsKey(stateName))
+        {
+            panel.SwitchToState(states[stateName]);
+        }
     }
 }

@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Node-Palatter"
+config/name="Scene-Palatter"
 config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 

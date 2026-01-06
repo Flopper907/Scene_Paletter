@@ -1,7 +1,17 @@
 using System.Collections.Generic;
 using Godot;
 
+namespace Addons.ScenePaletter;
+
 public abstract partial class WindowState
 {
-    public abstract List<Control> Generate();
+    public string title { get; protected set; } = "Undefined";
+    protected Plugin plugin;
+    public List<Control> controls { get; protected set; }
+    public WindowState(Plugin plugin)
+    {
+        this.plugin = plugin;
+    }
+    public virtual void Initialize(object data = null) { }
+    public abstract void Generate();
 }
