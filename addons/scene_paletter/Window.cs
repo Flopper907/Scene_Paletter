@@ -5,16 +5,10 @@ namespace Addons.ScenePaletter;
 
 public partial class Window : VBoxContainer
 {
-    public void SwitchToState(string state)
+    public void SwitchToState(WindowState state)
     {
         Clear();
-        List<Control> controls;
-        switch (state)
-        {
-            default:
-                controls = new List<Control>();
-                break;
-        }
+        List<Control> controls = state.Generate();
 
         SpawnNodes(controls);
     }
