@@ -10,34 +10,22 @@ public partial class Plugin : EditorPlugin
 {
     public ConfigFile configFile;
     public Config config;
-    private Dictionary<string, WindowState> states;
     public Palette palette;
     public string state;
+
+    private Dictionary<string, WindowState> states;
     private Window panel;
+    private Button toolbarButton;
 
     public override void _EnterTree()
     {
-        try
-        {
-            InitConfig();
-            InitWindow();
-            InitStates();
-        }
-        catch(Exception e)
-        {
-            GD.PrintErr(e);
-        }
+        InitToolbarButton();
     }
 
     public override void _ExitTree()
     {
-        if (panel != null)
-        {
-            RemoveControlFromDocks(panel);
-            panel.QueueFree();
-        }
-
-        GD.Print("Plugin disabled");
+        DisposeToolbarButton();
+        CloseWindow();
     }
 
     /* ============== Structs ============== */
@@ -48,25 +36,42 @@ public partial class Plugin : EditorPlugin
         public string FileExtension;
     }
 
-    /* ============== Management ============== */
+    /* ============== Init/Dispose ============== */
 
     private void InitConfig()
     {
         configFile = new ConfigFile();
         configFile.Load("res://addons/scene_paletter/plugin.cfg");
+
         config = new Config();
-        config.PalettePath = (string)configFile.GetValue("file_management","palette_path");
-        config.FileExtension = (string)configFile.GetValue("file_management","file_extension");
+        config.PalettePath = (string)configFile.GetValue("file_management", "palette_path");
+        config.FileExtension = (string)configFile.GetValue("file_management", "file_extension");
     }
+
+    private void DisposeConfig()
+    {
+        configFile = null;
+        config = new Config();
+        config.PalettePath = "";
+        config.FileExtension = "";
+    }
+
     private void InitStates()
     {
         states = new Dictionary<string, WindowState>
         {
-            {"Init",new Init(this)},
-            {"Loaded",new Loaded(this)},
+            {"Missing",new Missing(this)},
+            {"Editing",new Editing(this)},
+            {"Placing",new Placing(this)},
         };
-        state = "Init";
+        state = "Missing";
         SwitchState(state);
+    }
+
+    private void DisposeStates()
+    {
+        states = new Dictionary<string, WindowState>();
+        state = "";
     }
 
     private void InitWindow()
@@ -76,7 +81,55 @@ public partial class Plugin : EditorPlugin
         AddControlToDock(DockSlot.RightUl, panel);
     }
 
-    /* ============== Helpers ============== */
+    private void DisposeWindow()
+    {
+        if (!IsInstanceValid(panel)) return;
+        RemoveControlFromDocks(panel);
+        panel.QueueFree();
+    }
+
+    private void InitToolbarButton()
+    {
+        toolbarButton = new Button();
+        toolbarButton.Text = "Scene Palette";
+        toolbarButton.Pressed += () =>
+        {
+            if (!IsInstanceValid(panel))
+            {
+                StartWindow();
+            }
+            else
+            {
+                CloseWindow();
+            }
+        };
+        toolbarButton.Icon = EditorInterface.Singleton.GetBaseControl().GetThemeIcon("Node", "EditorIcons");
+        AddControlToContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
+    }
+
+    private void DisposeToolbarButton()
+    {
+        RemoveControlFromContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
+    }
+
+    /* ============== Window Helpers ============== */
+
+    private void StartWindow()
+    {
+        if (IsInstanceValid(panel)) return;
+        InitConfig();
+        InitWindow();
+        InitStates();
+    }
+
+    private void CloseWindow()
+    {
+        DisposeConfig();
+        DisposeStates();
+        DisposeWindow();
+    }
+
+    /* ============== Management ============== */
 
     public void LoadPalette(string name)
     {
@@ -92,9 +145,60 @@ public partial class Plugin : EditorPlugin
 
     public void SwitchState(string stateName)
     {
+        if (panel == null) return;
         if (states.ContainsKey(stateName))
         {
             panel.SwitchToState(states[stateName]);
         }
     }
 }
+
+
+
+// POSITIONS
+// ========== MAIN EDITOR ==========
+//     AddControlToContainer(CustomControlContainer.Toolbar, toolbarButton);
+//     // Main toolbar (top of editor, right side after Scene/Project/Debug/Editor/Help)
+
+//     // ========== TOOL EDITOR ==========
+//     AddControlToContainer(CustomControlContainer.SpatialEditorMenu, toolbarButton);
+//     // 3D viewport top toolbar (where Select/Move/Rotate/Scale tools are)
+
+//     AddControlToContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
+//     // 2D viewport top toolbar (where Select/Move/Rotate/Scale tools are)
+
+
+//     AddControlToContainer(CustomControlContainer.SpatialEditorSideLeft, toolbarButton);
+//     // 3D viewport left side panel
+
+//     AddControlToContainer(CustomControlContainer.CanvasEditorSideLeft, toolbarButton);
+//     // 2D viewport left side panel
+
+
+//     AddControlToContainer(CustomControlContainer.SpatialEditorSideRight, toolbarButton);
+//     // 3D viewport right side panel
+
+//     AddControlToContainer(CustomControlContainer.CanvasEditorSideRight, toolbarButton);
+//     // 2D viewport right side panel
+
+
+//     AddControlToContainer(CustomControlContainer.SpatialEditorBottom, toolbarButton);
+//     // 3D viewport bottom panel
+
+//     AddControlToContainer(CustomControlContainer.CanvasEditorBottom, toolbarButton);
+//     // 2D viewport bottom panel
+
+
+//     // ========== PROPERTY INSPECTOR ==========
+//     AddControlToContainer(CustomControlContainer.InspectorBottom, toolbarButton);
+//     // Bottom of the Inspector panel
+
+//     AddControlToContainer(CustomControlContainer.PropertyEditorBottom, toolbarButton);
+//     // Bottom of the property editor section
+
+//     // ========== PROJECT SETTINGS ==========
+//     AddControlToContainer(CustomControlContainer.ProjectSettingTabLeft, toolbarButton);
+//     // Left side of project settings tabs
+
+//     AddControlToContainer(CustomControlContainer.ProjectSettingTabRight, toolbarButton);
+//     // Right side of project settings tabs

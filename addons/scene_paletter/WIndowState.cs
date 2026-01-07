@@ -12,6 +12,6 @@ public abstract partial class WindowState
     {
         this.plugin = plugin;
     }
-    public virtual void Initialize(object data = null) { }
+    public virtual void Initialize() { }
     public abstract void Generate();
 }
