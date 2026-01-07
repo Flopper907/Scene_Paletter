@@ -7,6 +7,6 @@ namespace Addons.ScenePaletter;
 [Serializable]
 public class Palette
 {
-    public List<string> paths { get; set; }
-    public string name { get; set; } = "Untitled";
+    public List<string> Paths { get; set; } = new List<string>();
+    public string Name { get; set; } = "Untitled";
 }
