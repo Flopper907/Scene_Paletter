@@ -12,6 +12,7 @@ public partial class PaletteList : WindowState
 
     public override void Initialize()
     {
+        LoadPalettes();
         base.Initialize();
     }
 

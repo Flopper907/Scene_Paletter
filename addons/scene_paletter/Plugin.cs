@@ -10,12 +10,14 @@ public partial class Plugin : EditorPlugin
 {
     public ConfigFile configFile;
     public Config config;
-    public Palette palette;
+    public List<Palette> palettes;
+    public Palette currentPalette;
     public string state;
 
     private Dictionary<string, WindowState> states;
     private Window panel;
     private Button toolbarButton;
+    private System.Action toolbarButtonAction;
 
     public override void _EnterTree()
     {
@@ -56,10 +58,18 @@ public partial class Plugin : EditorPlugin
 
     private void DisposeConfig()
     {
+        if (configFile == null) return;
+        configFile.Dispose();
         configFile = null;
+
         config = new Config();
         config.PalettePath = "";
         config.FileExtension = "";
+        config.PalettePath = "";
+        config.FileExtension = "";
+        config.StartState = "";
+        config.IdStart = 0;
+        config.IdEnd = 0;
     }
 
     private void InitStates()
@@ -96,9 +106,9 @@ public partial class Plugin : EditorPlugin
 
     private void InitToolbarButton()
     {
-        toolbarButton = new Button();
-        toolbarButton.Text = "Scene Palette";
-        toolbarButton.Pressed += () =>
+        if (IsInstanceValid(toolbarButton)) return;
+
+        toolbarButtonAction = () =>
         {
             if (!IsInstanceValid(panel))
             {
@@ -109,13 +119,22 @@ public partial class Plugin : EditorPlugin
                 CloseWindow();
             }
         };
+        toolbarButton = new Button();
+        toolbarButton.Text = "Scene Palette";
+        toolbarButton.Pressed += toolbarButtonAction;
         toolbarButton.Icon = EditorInterface.Singleton.GetBaseControl().GetThemeIcon("Node", "EditorIcons");
         AddControlToContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
     }
 
     private void DisposeToolbarButton()
     {
-        RemoveControlFromContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
+        if (toolbarButton != null)
+        {
+            toolbarButton.Pressed -= toolbarButtonAction;
+            RemoveControlFromContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
+            toolbarButton.QueueFree();
+            toolbarButton = null;
+        }
     }
 
     /* ============== Window Helpers ============== */
@@ -137,18 +156,6 @@ public partial class Plugin : EditorPlugin
     }
 
     /* ============== Management ============== */
-
-    public void LoadPalette(string name)
-    {
-        Palette palette = SaveLoad.Load<Palette>(config.PalettePath + name + config.FileExtension);
-        palette.Name = name;
-        this.palette = palette;
-    }
-
-    public void SavePalette(Palette palette)
-    {
-        SaveLoad.Save(palette, config.PalettePath + palette.Name + config.FileExtension);
-    }
 
     public void SwitchState(string stateName)
     {

@@ -20,6 +20,7 @@ public partial class Window : VBoxContainer
     {
         Name = state.title;
         Clear();
+        state.Initialize();
         state.Generate();
         SpawnNodes(state.controls);
     }
