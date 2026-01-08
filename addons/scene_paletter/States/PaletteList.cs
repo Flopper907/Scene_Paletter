@@ -3,9 +3,9 @@ using Godot;
 
 namespace Addons.ScenePaletter.States;
 
-public partial class Missing : WindowState
+public partial class PaletteList : WindowState
 {
-    public Missing(Plugin plugin) : base(plugin)
+    public PaletteList(Plugin plugin) : base(plugin)
     {
         title = "Scene Palette";
     }

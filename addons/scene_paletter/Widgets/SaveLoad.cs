@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using Godot;
 
-namespace Addons.ScenePaletter;
+namespace Addons.ScenePaletter.Tools;
 
 public class SaveLoad
 {

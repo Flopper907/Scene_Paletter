@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Addons.ScenePaletter.States;
+using Addons.ScenePaletter.Tools;
 using Godot;
 
 namespace Addons.ScenePaletter;
@@ -34,6 +34,9 @@ public partial class Plugin : EditorPlugin
     {
         public string PalettePath;
         public string FileExtension;
+        public string StartState;
+        public int IdStart;
+        public int IdEnd;
     }
 
     /* ============== Init/Dispose ============== */
@@ -44,8 +47,11 @@ public partial class Plugin : EditorPlugin
         configFile.Load("res://addons/scene_paletter/plugin.cfg");
 
         config = new Config();
-        config.PalettePath = (string)configFile.GetValue("file_management", "palette_path");
-        config.FileExtension = (string)configFile.GetValue("file_management", "file_extension");
+        config.PalettePath = (string)configFile.GetValue("file", "palette_path");
+        config.FileExtension = (string)configFile.GetValue("file", "file_extension");
+        config.IdStart = (int)configFile.GetValue("file", "id_start");
+        config.IdEnd = (int)configFile.GetValue("file", "id_end");
+        config.StartState = (string)configFile.GetValue("state", "start_state");
     }
 
     private void DisposeConfig()
@@ -60,11 +66,11 @@ public partial class Plugin : EditorPlugin
     {
         states = new Dictionary<string, WindowState>
         {
-            {"Missing",new Missing(this)},
-            {"Editing",new Editing(this)},
-            {"Placing",new Placing(this)},
+            {"PaletteList", new PaletteList(this)},
+            {"Editing", new Editing(this)},
+            {"Placing", new Placing(this)},
         };
-        state = "Missing";
+        state = config.StartState;
         SwitchState(state);
     }
 
@@ -124,9 +130,10 @@ public partial class Plugin : EditorPlugin
 
     private void CloseWindow()
     {
+        if (!IsInstanceValid(panel)) return;
         DisposeConfig();
-        DisposeStates();
         DisposeWindow();
+        DisposeStates();
     }
 
     /* ============== Management ============== */
