@@ -8,22 +8,26 @@ namespace Addons.ScenePaletter.Tools;
 
 public class SaveLoad
 {
+    private static readonly bool print = false;
+    private static readonly bool printErr = true;
+
+    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    {
+        WriteIndented = true,
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public static void Save<T>(T data, string path)
     {
         try
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase // Optional: to format keys in camelCase
-            };
-            string jsonData = JsonSerializer.Serialize(data, options);
+            string jsonData = JsonSerializer.Serialize(data, JsonOptions);
             File.WriteAllText(ProjectSettings.GlobalizePath(path), jsonData);
-            GD.Print("Data saved successfully to: " + ProjectSettings.GlobalizePath(path));
+            Print("Data saved successfully to: " + ProjectSettings.GlobalizePath(path));
         }
         catch (Exception ex)
         {
-            GD.PrintErr("Error saving data: " + ex.Message);
+            PrintErr("Error saving data: " + ex.Message);
         }
     }
 
@@ -35,12 +39,12 @@ public class SaveLoad
             {
                 string jsonData = File.ReadAllText(ProjectSettings.GlobalizePath(path));
                 T data = JsonSerializer.Deserialize<T>(jsonData);
-                GD.Print("Data loaded successfully from: " + ProjectSettings.GlobalizePath(path));
+                Print("Data loaded successfully from: " + ProjectSettings.GlobalizePath(path));
                 return data;
             }
             else
             {
-                GD.PrintErr("File new created, because not found: " + path);
+                PrintErr("File new created, because not found: " + path);
                 T newData = new T();
                 Save(newData, path);
                 return newData;
@@ -48,7 +52,7 @@ public class SaveLoad
         }
         catch (Exception ex)
         {
-            GD.PrintErr("Error loading data: " + ex.Message);
+            PrintErr("Error loading data: " + ex.Message);
         }
 
         return new T();
@@ -62,18 +66,18 @@ public class SaveLoad
             {
                 string jsonData = File.ReadAllText(ProjectSettings.GlobalizePath(path));
                 T data = JsonSerializer.Deserialize<T>(jsonData);
-                GD.Print("Data loaded successfully from: " + ProjectSettings.GlobalizePath(path));
+                Print("Data loaded successfully from: " + ProjectSettings.GlobalizePath(path));
                 return data;
             }
             else
             {
-                GD.PrintErr("File new created, because not found: " + path);
+                PrintErr("File new created, because not found: " + path);
                 return default;
             }
         }
         catch (Exception ex)
         {
-            GD.PrintErr("Error loading data: " + ex.Message);
+            PrintErr("Error loading data: " + ex.Message);
         }
 
         return new T();
@@ -90,7 +94,7 @@ public class SaveLoad
             // Check if directory exists
             if (!Directory.Exists(globalPath))
             {
-                GD.PrintErr($"Folder not found: {folder}");
+                PrintErr($"Folder not found: {folder}");
                 return results;
             }
 
@@ -110,22 +114,22 @@ public class SaveLoad
                         if (data != null)
                         {
                             results.Add(data);
-                            GD.Print($"Loaded: {file}");
+                            Print($"Loaded: {file}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        GD.PrintErr($"Error loading file {file}: {ex.Message}");
+                        PrintErr($"Error loading file {file}: {ex.Message}");
                         // Continue loading other files even if one fails
                     }
                 }
             }
 
-            GD.Print($"Successfully loaded {results.Count} file(s) from: {folder}");
+            Print($"Successfully loaded {results.Count} file(s) from: {folder}");
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"Error loading files from folder: {ex.Message}");
+            PrintErr($"Error loading files from folder: {ex.Message}");
         }
 
         return results;
@@ -142,7 +146,7 @@ public class SaveLoad
             // Check if directory exists
             if (!Directory.Exists(globalPath))
             {
-                GD.PrintErr($"Folder not found: {folder}");
+                PrintErr($"Folder not found: {folder}");
                 return results;
             }
 
@@ -163,21 +167,21 @@ public class SaveLoad
                         {
                             string filename = Path.GetFileName(file);
                             results.Add((data, filename));
-                            GD.Print($"Loaded: {filename}");
+                            Print($"Loaded: {filename}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        GD.PrintErr($"Error loading file {file}: {ex.Message}");
+                        PrintErr($"Error loading file {file}: {ex.Message}");
                     }
                 }
             }
 
-            GD.Print($"Successfully loaded {results.Count} file(s) from: {folder}");
+            Print($"Successfully loaded {results.Count} file(s) from: {folder}");
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"Error loading files from folder: {ex.Message}");
+            PrintErr($"Error loading files from folder: {ex.Message}");
         }
 
         return results;
@@ -192,19 +196,32 @@ public class SaveLoad
             if (File.Exists(globalPath))
             {
                 File.Delete(globalPath);
-                GD.Print("File deleted successfully: " + globalPath);
+                Print("File deleted successfully: " + globalPath);
                 return true;
             }
             else
             {
-                GD.PrintErr("File not found: " + path);
+                PrintErr("File not found: " + path);
                 return false;
             }
         }
         catch (Exception ex)
         {
-            GD.PrintErr("Error deleting file: " + ex.Message);
+            PrintErr("Error deleting file: " + ex.Message);
             return false;
         }
+    }
+
+
+
+    // ============= Helper ==============
+    private static void Print(string s)
+    {
+        if (print) GD.Print(s);
+    }
+
+    private static void PrintErr(string s)
+    {
+        if (printErr) GD.PrintErr(s);
     }
 }

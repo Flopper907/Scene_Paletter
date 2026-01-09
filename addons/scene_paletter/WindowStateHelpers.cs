@@ -1,15 +1,38 @@
 using System.Collections.Generic;
+using System.Linq;
 using Addons.ScenePaletter.Tools;
+using Godot;
 
 namespace Addons.ScenePaletter;
 
 public partial class WindowState
 {
+    protected void GenerateHeaderBar()
+    {
+        headerBar = new PanelContainer();
+        headerBar.CustomMinimumSize = new Vector2(0, 40);
+    }
+
+    protected void GenerateContentArea()
+    {
+        contentArea = new VBoxContainer();
+        contentArea.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        contentArea.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+    }
+
+
+    protected void GenerateFooterBar()
+    {
+        footerBar = new PanelContainer();
+        footerBar.CustomMinimumSize = new Vector2(0, 32);
+    }
+
     public void CreatePalette()
     {
         Palette palette = new Palette();
         palette.Name = "Untitled";
         palette.UID = IDGenerator.GenerateID(plugin.config.IdStart, plugin.config.IdEnd).ToString();
+        palette.Position = plugin.palettes.Count;
         plugin.palettes.Add(palette);
         SavePalette(palette);
     }
@@ -23,6 +46,9 @@ public partial class WindowState
             p.data.UID = p.filename.Replace(plugin.config.FileExtension, "");
             palettes.Add(p.data);
         }
+
+        palettes.Sort((a, b) => a.Position.CompareTo(b.Position));
+
         plugin.palettes = palettes;
     }
 

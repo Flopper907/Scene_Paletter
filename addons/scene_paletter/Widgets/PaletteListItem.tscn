@@ -1,0 +1,66 @@
+[gd_scene load_steps=4 format=3 uid="uid://bm4rn73dw0n6t"]
+
+[ext_resource type="Script" uid="uid://ekha4q68noa" path="res://addons/scene_paletter/Widgets/PaletteListItem.cs" id="1_7uj0h"]
+[ext_resource type="Texture2D" uid="uid://cfe4w361vwlvn" path="res://icon.svg" id="1_vbphr"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_7uj0h"]
+font_color = Color(0.59717613, 0.59717613, 0.5971761, 1)
+
+[node name="PanelContainer" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -578.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7uj0h")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="HBoxContainer/Button"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "Name of the palette"
+max_lines_visible = 1
+
+[node name="Label2" type="Label" parent="HBoxContainer/Button"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -90.0
+grow_horizontal = 0
+grow_vertical = 2
+size_flags_horizontal = 8
+size_flags_vertical = 1
+text = "ID: 0000001"
+label_settings = SubResource("LabelSettings_7uj0h")
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="TextureButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(40, 70)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="HBoxContainer/TextureButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_vbphr")
+expand_mode = 1
+stretch_mode = 5

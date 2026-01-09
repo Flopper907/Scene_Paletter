@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Addons.ScenePaletter.States;
-using Addons.ScenePaletter.Tools;
 using Godot;
 
 namespace Addons.ScenePaletter;
@@ -162,7 +161,17 @@ public partial class Plugin : EditorPlugin
         if (panel == null) return;
         if (states.ContainsKey(stateName))
         {
+            state = stateName;
             panel.SwitchToState(states[stateName]);
+        }
+    }
+
+    public void ReloadState()
+    {
+        if (panel == null) return;
+        if (states.ContainsKey(state))
+        {
+            panel.SwitchToState(states[state]);
         }
     }
 }

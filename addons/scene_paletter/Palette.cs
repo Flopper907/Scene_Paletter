@@ -10,7 +10,7 @@ public class Palette
 {
     public List<string> Paths { get; set; } = new List<string>();
     public string Name { get; set; } = "Untitled";
-
+    public int Position { get; set; }
     [JsonIgnore]
     public string UID { get; set; }
 
