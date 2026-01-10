@@ -101,6 +101,7 @@ public partial class Plugin : EditorPlugin
         if (!IsInstanceValid(panel)) return;
         RemoveControlFromDocks(panel);
         panel.QueueFree();
+        panel = null;
     }
 
     private void InitToolbarButton()
@@ -127,9 +128,8 @@ public partial class Plugin : EditorPlugin
 
     private void DisposeToolbarButton()
     {
-        if (toolbarButton != null)
+        if (IsInstanceValid(toolbarButton))
         {
-            toolbarButton.Pressed -= toolbarButtonAction;
             RemoveControlFromContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
             toolbarButton.QueueFree();
             toolbarButton = null;
@@ -149,9 +149,9 @@ public partial class Plugin : EditorPlugin
     private void CloseWindow()
     {
         if (!IsInstanceValid(panel)) return;
-        DisposeConfig();
-        DisposeWindow();
         DisposeStates();
+        DisposeWindow();
+        DisposeConfig();
     }
 
     /* ============== Management ============== */

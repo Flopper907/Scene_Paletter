@@ -23,10 +23,12 @@ public partial class PaletteList : WindowState
 
         GenerateHeaderBar();
         controls.Add(headerBar);
-        LineEdit searchbar = new LineEdit();
-        searchbar.PlaceholderText = "Search";
-        searchbar.TextChanged += (string text) => { GD.Print(text); };
-        headerBar.AddChild(searchbar);
+        Label text = new Label();
+        text.Text = "Palettes";
+        LabelSettings labelSettings = new LabelSettings();
+        labelSettings.FontSize = 25; // Set your desired size
+        text.LabelSettings = labelSettings;
+        headerBar.AddChild(text);
 
         GenerateContentArea();
         controls.Add(contentArea);
