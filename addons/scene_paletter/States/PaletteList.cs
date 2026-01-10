@@ -57,7 +57,7 @@ public partial class PaletteList : WindowState<PaletteListData>
                 () =>
                 {
                     DeletePalette(palette);
-                    plugin.SwitchState("PaletteList", null);
+                    plugin.ReloadState(new PaletteListData());
                 }
             );
         }
@@ -74,7 +74,7 @@ public partial class PaletteList : WindowState<PaletteListData>
         createButton.Pressed += () =>
         {
             CreatePalette();
-            plugin.SwitchState("PaletteList", null);
+            plugin.ReloadState(new PaletteListData());
         };
         footerBar.AddChild(createButton);
     }
@@ -101,7 +101,7 @@ public partial class PaletteList : WindowState<PaletteListData>
         Palette palette = new Palette();
         palette.Name = "Untitled";
         palette.UID = IDGenerator.GenerateID(plugin.config.IdStart, plugin.config.IdEnd).ToString();
-        palette.Position = data.palettes[data.palettes.Count - 1].Position + 1;
+        palette.Position = data.palettes.Count > 0 ? data.palettes[data.palettes.Count - 1].Position + 1 : 0;
         data.palettes.Add(palette);
         SavePalette(palette);
     }
