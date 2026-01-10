@@ -73,7 +73,7 @@ public partial class PaletteList : WindowState<PaletteListData>
         createButton.Text = "Create New";
         createButton.Pressed += () =>
         {
-            // CreatePalette();
+            CreatePalette();
             plugin.SwitchState("PaletteList", null);
         };
         footerBar.AddChild(createButton);
@@ -93,5 +93,16 @@ public partial class PaletteList : WindowState<PaletteListData>
         palettes.Sort((a, b) => a.Position.CompareTo(b.Position));
 
         data.palettes = palettes;
+    }
+
+
+    public void CreatePalette()
+    {
+        Palette palette = new Palette();
+        palette.Name = "Untitled";
+        palette.UID = IDGenerator.GenerateID(plugin.config.IdStart, plugin.config.IdEnd).ToString();
+        palette.Position = data.palettes[data.palettes.Count - 1].Position + 1;
+        data.palettes.Add(palette);
+        SavePalette(palette);
     }
 }
