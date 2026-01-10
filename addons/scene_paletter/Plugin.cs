@@ -9,11 +9,9 @@ public partial class Plugin : EditorPlugin
 {
     public ConfigFile configFile;
     public Config config;
-    public List<Palette> palettes;
-    public Palette currentPalette;
     public string state;
 
-    private Dictionary<string, WindowState> states;
+    private Dictionary<string, WindowStateBase> states;
     private Window panel;
     private Button toolbarButton;
     private System.Action toolbarButtonAction;
@@ -34,6 +32,7 @@ public partial class Plugin : EditorPlugin
     public struct Config
     {
         public string PalettePath;
+        public string WidgetPath;
         public string FileExtension;
         public string StartState;
         public int IdStart;
@@ -49,6 +48,7 @@ public partial class Plugin : EditorPlugin
 
         config = new Config();
         config.PalettePath = (string)configFile.GetValue("file", "palette_path");
+        config.WidgetPath = (string)configFile.GetValue("file", "widget_path");
         config.FileExtension = (string)configFile.GetValue("file", "file_extension");
         config.IdStart = (int)configFile.GetValue("file", "id_start");
         config.IdEnd = (int)configFile.GetValue("file", "id_end");
@@ -73,19 +73,19 @@ public partial class Plugin : EditorPlugin
 
     private void InitStates()
     {
-        states = new Dictionary<string, WindowState>
+        states = new Dictionary<string, WindowStateBase>
         {
             {"PaletteList", new PaletteList(this)},
             {"Editing", new Editing(this)},
             {"Placing", new Placing(this)},
         };
         state = config.StartState;
-        SwitchState(state);
+        SwitchState(state, new PaletteListData());
     }
 
     private void DisposeStates()
     {
-        states = new Dictionary<string, WindowState>();
+        states = new Dictionary<string, WindowStateBase>();
         state = "";
     }
 
@@ -156,22 +156,22 @@ public partial class Plugin : EditorPlugin
 
     /* ============== Management ============== */
 
-    public void SwitchState(string stateName)
+    public void SwitchState(string stateName, WindowStateData data)
     {
         if (panel == null) return;
         if (states.ContainsKey(stateName))
         {
             state = stateName;
-            panel.SwitchToState(states[stateName]);
+            panel.SwitchToState(states[stateName], data);
         }
     }
 
-    public void ReloadState()
+    public void ReloadState(WindowStateData data)
     {
         if (panel == null) return;
         if (states.ContainsKey(state))
         {
-            panel.SwitchToState(states[state]);
+            panel.SwitchToState(states[state], data);
         }
     }
 }

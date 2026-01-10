@@ -1,0 +1,44 @@
+[gd_scene load_steps=3 format=3 uid="uid://c2pgo5wkq2ofi"]
+
+[ext_resource type="Texture2D" uid="uid://cfe4w361vwlvn" path="res://icon.svg" id="1_vqiuw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqiuw"]
+bg_color = Color(1, 1, 1, 1)
+
+[node name="PanelContainer" type="PanelContainer"]
+offset_right = 288.0
+offset_bottom = 315.0
+size_flags_horizontal = 3
+
+[node name="Panel" type="Panel" parent="."]
+modulate = Color(0.38759997, 0.56138664, 0.76, 1)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_vqiuw")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("1_vqiuw")
+expand_mode = 4
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Name Scene"
+horizontal_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="PanelContainer"]
+layout_mode = 2

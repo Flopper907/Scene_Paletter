@@ -3,16 +3,16 @@ using Godot;
 
 namespace Addons.ScenePaletter.States;
 
-public partial class Editing : WindowState
+public partial class Editing : WindowState<EditingData>
 {
     public Editing(Plugin plugin) : base(plugin)
     {
-        title = "Scene Palette";
+        Title = "Scene Palette";
     }
 
-    public override void Initialize()
+    public override void Initialize(EditingData data)
     {
-        base.Initialize();
+        base.Initialize(data);
     }
 
     public override void Generate()

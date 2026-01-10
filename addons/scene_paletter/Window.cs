@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -16,11 +17,11 @@ public partial class Window : VBoxContainer
         foreach (Control control in controls)
             AddChild(control);
     }
-    public void SwitchToState(WindowState state)
+    public void SwitchToState(WindowStateBase state, WindowStateData data)
     {
-        Name = state.title;
+        Name = state.Title;
         Clear();
-        state.Initialize();
+        state.InitializeBase(data);
         state.Generate();
         SpawnNodes(state.controls);
     }

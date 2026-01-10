@@ -3,7 +3,6 @@ using Godot;
 
 namespace Addons.ScenePaletter.Widgets;
 
-[GlobalClass]
 public partial class PaletteListItem : PanelContainer
 {
     private static string DeleteButtonPath = "HBoxContainer/TextureButton";

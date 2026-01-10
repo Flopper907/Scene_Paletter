@@ -1,25 +1,27 @@
 using System.Collections.Generic;
+using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
 using Godot;
 
 namespace Addons.ScenePaletter.States;
 
-public partial class PaletteList : WindowState
+public partial class PaletteList : WindowState<PaletteListData>
 {
     public PaletteList(Plugin plugin) : base(plugin)
     {
-        title = "Scene Palette";
+        Title = "Scene Palette";
     }
 
-    public override void Initialize()
+    public override void Initialize(PaletteListData data)
     {
-        LoadPalettes();
-        base.Initialize();
+        base.Initialize(data);
+        LoadPalettes(data);
     }
 
     public override void Generate()
     {
         controls = new List<Control>();
+
 
         GenerateHeaderBar();
         controls.Add(headerBar);
@@ -39,9 +41,9 @@ public partial class PaletteList : WindowState
         paletteScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         paletteScrollBar.AddChild(paletteScrollContent);
-        foreach (Palette palette in plugin.palettes)
+        foreach (Palette palette in data.palettes)
         {
-            PackedScene ps = GD.Load<PackedScene>("res://addons/scene_paletter/Widgets/PaletteListItem.tscn");
+            PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "PaletteListItem.tscn");
             PanelContainer item = ps.Instantiate() as PanelContainer;
             paletteScrollContent.AddChild(item);
             PaletteListItem.SetData(
@@ -50,13 +52,12 @@ public partial class PaletteList : WindowState
                 palette.UID,
                 () =>
                 {
-                    plugin.currentPalette = palette;
-                    plugin.SwitchState("Placing");
+                    plugin.SwitchState("Placing", new PlacingData() { palette = palette });
                 },
                 () =>
                 {
                     DeletePalette(palette);
-                    plugin.SwitchState("PaletteList");
+                    plugin.SwitchState("PaletteList", null);
                 }
             );
         }
@@ -72,9 +73,25 @@ public partial class PaletteList : WindowState
         createButton.Text = "Create New";
         createButton.Pressed += () =>
         {
-            CreatePalette();
-            plugin.SwitchState("PaletteList");
+            // CreatePalette();
+            plugin.SwitchState("PaletteList", null);
         };
         footerBar.AddChild(createButton);
+    }
+
+
+    public void LoadPalettes(PaletteListData data)
+    {
+        List<Palette> palettes = new List<Palette>();
+        var paletteData = SaveLoad.LoadAllWithFile<Palette>("res://addons/scene_paletter/Palettes/", ".json");
+        foreach (var p in paletteData)
+        {
+            p.data.UID = p.filename.Replace(plugin.config.FileExtension, "");
+            palettes.Add(p.data);
+        }
+
+        palettes.Sort((a, b) => a.Position.CompareTo(b.Position));
+
+        data.palettes = palettes;
     }
 }
