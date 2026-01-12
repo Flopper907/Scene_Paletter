@@ -19,9 +19,9 @@ public partial class Window : VBoxContainer
     }
     public void SwitchToState(WindowStateBase state, WindowStateData data)
     {
-        Name = state.Title;
         Clear();
         state.InitializeBase(data);
+        Name = state.Title;
         state.Generate();
         SpawnNodes(state.controls);
     }
