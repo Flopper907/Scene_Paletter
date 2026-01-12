@@ -22,6 +22,7 @@ public class Palette
             s += path + ",";
         }
         s += "}, Name: " + Name;
+        s += "}, Position: " + Position;
         s += ",: UID: " + UID;
         return s;
     }
