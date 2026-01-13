@@ -13,17 +13,20 @@ public partial class Plugin : EditorPlugin
 
     private Dictionary<string, WindowStateBase> states;
     private Window panel;
-    private Button toolbarButton;
+    private Button toolbarButton2D;
+    private Button toolbarButton3D;
     private System.Action toolbarButtonAction;
 
     public override void _EnterTree()
     {
-        InitToolbarButton();
+        InitToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
+        InitToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
     }
 
     public override void _ExitTree()
     {
-        DisposeToolbarButton();
+        DisposeToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
+        DisposeToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
         CloseWindow();
     }
 
@@ -104,9 +107,9 @@ public partial class Plugin : EditorPlugin
         panel = null;
     }
 
-    private void InitToolbarButton()
+    private void InitToolbarButton(ref Button button, CustomControlContainer container)
     {
-        if (IsInstanceValid(toolbarButton)) return;
+        if (IsInstanceValid(button)) return;
 
         toolbarButtonAction = () =>
         {
@@ -119,20 +122,19 @@ public partial class Plugin : EditorPlugin
                 CloseWindow();
             }
         };
-        toolbarButton = new Button();
-        toolbarButton.Text = "Scene Palette";
-        toolbarButton.Pressed += toolbarButtonAction;
-        toolbarButton.Icon = EditorInterface.Singleton.GetBaseControl().GetThemeIcon("Node", "EditorIcons");
-        AddControlToContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
+        button = new Button();
+        button.Text = "Scene Palette";
+        button.Pressed += toolbarButtonAction;
+        button.Icon = EditorInterface.Singleton.GetBaseControl().GetThemeIcon("Node", "EditorIcons");
+        AddControlToContainer(container, button);
     }
 
-    private void DisposeToolbarButton()
+    private void DisposeToolbarButton(ref Button button, CustomControlContainer container)
     {
-        if (IsInstanceValid(toolbarButton))
+        if (IsInstanceValid(button))
         {
-            RemoveControlFromContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
-            toolbarButton.QueueFree();
-            toolbarButton = null;
+            RemoveControlFromContainer(container, button);
+            button.QueueFree();
         }
     }
 
