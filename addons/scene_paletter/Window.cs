@@ -9,7 +9,11 @@ public partial class Window : VBoxContainer
     public void Clear()
     {
         foreach (Node node in GetChildren())
+        {
+
+            RemoveChild(node);
             node.QueueFree();
+        }
     }
 
     public void SpawnNodes(List<Control> controls)

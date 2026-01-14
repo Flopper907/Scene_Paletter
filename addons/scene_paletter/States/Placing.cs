@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Addons.ScenePaletter.Widgets;
 using Godot;
@@ -83,20 +84,15 @@ public partial class Placing : WindowState<PlacingData>
         paletteScrollBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         paletteScrollBar.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
 
-        // GridContainer paletteScrollContent = new GridContainer();
-        // paletteScrollContent.Columns = 2;
-        // paletteScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        // paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        // paletteScrollBar.AddChild(paletteScrollContent);
-
-        HFlowContainer paletteScrollContent = new HFlowContainer();
+        GridContainer paletteScrollContent = new GridContainer();
+        paletteScrollContent.Columns = plugin.config.Columns;
         paletteScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         paletteScrollBar.AddChild(paletteScrollContent);
 
+        PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneListItem.tscn");
         foreach (string uid in data.palette.Paths)
         {
-            PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneListItem.tscn");
             PanelContainer item = ps.Instantiate() as PanelContainer;
             SceneListItem.SetData(item, uid, data.currentElement == uid, () =>
             {
@@ -113,22 +109,59 @@ public partial class Placing : WindowState<PlacingData>
             });
             paletteScrollContent.AddChild(item);
         }
-        Control spacer = new Control();
-        spacer.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        spacer.SizeFlagsStretchRatio = 10.0f;
-        spacer.CustomMinimumSize = new Vector2(0, 0);
-        paletteScrollContent.AddChild(spacer);
 
         contentArea.AddChild(paletteScrollBar);
 
+
+
+
+
         GenerateFooterBar();
         controls.Add(footerBar);
-        Button placeButton = new Button();
-        placeButton.Text = "Place";
 
+        HBoxContainer footerContent = new HBoxContainer();
+        footerContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        footerContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        footerBar.AddChild(footerContent);
+
+        Button columnRemoveButton = new Button();
+        columnRemoveButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        columnRemoveButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        columnRemoveButton.SizeFlagsStretchRatio = 1f;
+        footerContent.AddChild(columnRemoveButton);
+
+        columnRemoveButton.Text = "-";
+        columnRemoveButton.Pressed += () =>
+        {
+            plugin.config.Columns = Math.Max(plugin.config.MinColums, plugin.config.Columns - 1);
+            plugin.ReloadState(data);
+        };
+
+
+        Button columnAddButton = new Button();
+        columnAddButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        columnAddButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        columnAddButton.SizeFlagsStretchRatio = 1f;
+        footerContent.AddChild(columnAddButton);
+
+        columnAddButton.Text = "+";
+        columnAddButton.Pressed += () =>
+        {
+            plugin.config.Columns = Math.Min(plugin.config.MaxColums, plugin.config.Columns + 1);
+            plugin.ReloadState(data);
+        };
+
+
+        Button placeButton = new Button();
+        placeButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        placeButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        footerContent.AddChild(placeButton);
+        placeButton.SizeFlagsStretchRatio = 8f;
+        placeButton.Text = "Place";
         placeButton.Pressed += () =>
         {
             PackedScene packedScene = GD.Load<PackedScene>(data.currentElement);
+            if (packedScene == null) return;
             Node parent = GetParentNodeFromEditor();
             Node instance = packedScene.Instantiate();
 
@@ -199,12 +232,6 @@ public partial class Placing : WindowState<PlacingData>
             // Mark scene as unsaved
             EditorInterface.Singleton.MarkSceneAsUnsaved();
         };
-
-
-        placeButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        placeButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        footerBar.AddChild(placeButton);
-
     }
 
     private Node GetParentNodeFromEditor()

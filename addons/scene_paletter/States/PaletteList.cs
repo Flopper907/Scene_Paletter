@@ -41,9 +41,10 @@ public partial class PaletteList : WindowState<PaletteListData>
         paletteScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         paletteScrollBar.AddChild(paletteScrollContent);
+
+        PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "PaletteListItem.tscn");
         foreach (Palette palette in data.palettes)
         {
-            PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "PaletteListItem.tscn");
             PanelContainer item = ps.Instantiate() as PanelContainer;
             paletteScrollContent.AddChild(item);
             PaletteListItem.SetData(

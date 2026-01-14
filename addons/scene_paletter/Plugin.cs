@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Addons.ScenePaletter.States;
 using Godot;
@@ -38,6 +39,9 @@ public partial class Plugin : EditorPlugin
         public string WidgetPath;
         public string FileExtension;
         public string StartState;
+        public int MinColums;
+        public int MaxColums;
+        public int Columns;
         public int IdStart;
         public int IdEnd;
     }
@@ -53,6 +57,9 @@ public partial class Plugin : EditorPlugin
         config.PalettePath = (string)configFile.GetValue("file", "palette_path");
         config.WidgetPath = (string)configFile.GetValue("file", "widget_path");
         config.FileExtension = (string)configFile.GetValue("file", "file_extension");
+        config.MinColums = (int)configFile.GetValue("state", "min_columns");
+        config.MaxColums = (int)configFile.GetValue("state", "max_columns");
+        config.Columns = Math.Clamp(2, config.MinColums, config.MaxColums);
         config.IdStart = (int)configFile.GetValue("file", "id_start");
         config.IdEnd = (int)configFile.GetValue("file", "id_end");
         config.StartState = (string)configFile.GetValue("state", "start_state");

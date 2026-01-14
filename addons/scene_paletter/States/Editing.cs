@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Addons.ScenePaletter.Widgets;
@@ -85,6 +86,7 @@ public partial class Editing : WindowState<EditingData>
         ScrollContainer paletteScrollBar = new ScrollContainer();
         paletteScrollBar.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         paletteScrollBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        paletteScrollBar.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
 
         GridContainer paletteScrollContent = new GridContainer();
         paletteScrollContent.Columns = 2;
@@ -92,9 +94,9 @@ public partial class Editing : WindowState<EditingData>
         paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         paletteScrollBar.AddChild(paletteScrollContent);
 
+        PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneEditListItem.tscn");
         for (int i = 0; i < data.palette.Paths.Count; i++)
         {
-            PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneEditListItem.tscn");
             PanelContainer item = ps.Instantiate() as PanelContainer;
 
             int currentIndex = i;
@@ -138,6 +140,50 @@ public partial class Editing : WindowState<EditingData>
 
         paletteScrollContent.AddChild(addButtonInstance);
         contentArea.AddChild(paletteScrollBar);
+
+
+
+        GenerateFooterBar();
+        controls.Add(footerBar);
+
+        HBoxContainer footerContent = new HBoxContainer();
+        footerContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        footerContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        footerBar.AddChild(footerContent);
+
+        Button columnRemoveButton = new Button();
+        columnRemoveButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        columnRemoveButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        columnRemoveButton.SizeFlagsStretchRatio = 1f;
+        footerContent.AddChild(columnRemoveButton);
+
+        columnRemoveButton.Text = "-";
+        columnRemoveButton.Pressed += () =>
+        {
+            plugin.config.Columns = Math.Max(plugin.config.MinColums, plugin.config.Columns - 1);
+            plugin.ReloadState(data);
+        };
+
+
+        Button columnAddButton = new Button();
+        columnAddButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        columnAddButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        columnAddButton.SizeFlagsStretchRatio = 1f;
+        footerContent.AddChild(columnAddButton);
+
+        columnAddButton.Text = "+";
+        columnAddButton.Pressed += () =>
+        {
+            plugin.config.Columns = Math.Min(plugin.config.MaxColums, plugin.config.Columns + 1);
+            plugin.ReloadState(data);
+        };
+
+
+        Control spacer = new Control();
+        spacer.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        spacer.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        footerContent.AddChild(spacer);
+        spacer.SizeFlagsStretchRatio = 8f;
     }
 
 

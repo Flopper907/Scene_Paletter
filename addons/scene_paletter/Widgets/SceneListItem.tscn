@@ -6,10 +6,9 @@
 bg_color = Color(1, 1, 1, 1)
 
 [node name="PanelContainer" type="PanelContainer"]
-offset_right = 288.0
-offset_bottom = 315.0
+offset_right = 279.0
+offset_bottom = 306.0
 size_flags_horizontal = 3
-size_flags_vertical = 3
 
 [node name="Panel" type="Panel" parent="."]
 visible = false
@@ -34,9 +33,9 @@ expand_mode = 4
 stretch_mode = 5
 
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(90, 23)
+custom_minimum_size = Vector2(40, 23)
 layout_mode = 2
-size_flags_vertical = 6
+size_flags_vertical = 2
 text = "Name Scene"
 horizontal_alignment = 1
 autowrap_mode = 1
