@@ -13,7 +13,7 @@ font_size = 26
 offset_right = 288.0
 offset_bottom = 315.0
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 8
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
@@ -25,12 +25,12 @@ theme_override_constants/margin_bottom = 10
 [node name="TextureRect" type="TextureRect" parent="MarginContainer"]
 self_modulate = Color(1, 1, 1, 0.3137255)
 layout_mode = 2
+size_flags_vertical = 3
 texture = SubResource("GradientTexture2D_5t1tw")
 expand_mode = 4
 
 [node name="Label" type="Label" parent="MarginContainer"]
 layout_mode = 2
-size_flags_vertical = 1
 text = "Add New"
 label_settings = SubResource("LabelSettings_1uctf")
 horizontal_alignment = 1

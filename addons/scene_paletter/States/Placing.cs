@@ -79,16 +79,17 @@ public partial class Placing : WindowState<PlacingData>
         contentArea.AddChild(hSeparator);
 
 
-        ScrollContainer paletteScrollBar = new ScrollContainer();
-        paletteScrollBar.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        paletteScrollBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        paletteScrollBar.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        ScrollContainer sceneScrollBar = new ScrollContainer();
+        sceneScrollBar.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        sceneScrollBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        sceneScrollBar.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        contentArea.AddChild(sceneScrollBar);
 
-        GridContainer paletteScrollContent = new GridContainer();
-        paletteScrollContent.Columns = plugin.config.Columns;
-        paletteScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        paletteScrollBar.AddChild(paletteScrollContent);
+        GridContainer sceneScrollContent = new GridContainer();
+        sceneScrollContent.Columns = plugin.config.Columns;
+        sceneScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        sceneScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        sceneScrollBar.AddChild(sceneScrollContent);
 
         PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneListItem.tscn");
         foreach (string uid in data.palette.Paths)
@@ -107,10 +108,9 @@ public partial class Placing : WindowState<PlacingData>
 
                 plugin.ReloadState(data);
             });
-            paletteScrollContent.AddChild(item);
+            sceneScrollContent.AddChild(item);
         }
 
-        contentArea.AddChild(paletteScrollBar);
 
 
 

@@ -83,16 +83,17 @@ public partial class Editing : WindowState<EditingData>
         contentArea.AddChild(hSeparator);
 
 
-        ScrollContainer paletteScrollBar = new ScrollContainer();
-        paletteScrollBar.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        paletteScrollBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        paletteScrollBar.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        ScrollContainer sceneScrollBar = new ScrollContainer();
+        sceneScrollBar.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        sceneScrollBar.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        sceneScrollBar.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        contentArea.AddChild(sceneScrollBar);
 
-        GridContainer paletteScrollContent = new GridContainer();
-        paletteScrollContent.Columns = 2;
-        paletteScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        paletteScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        paletteScrollBar.AddChild(paletteScrollContent);
+        GridContainer sceneScrollContent = new GridContainer();
+        sceneScrollContent.Columns = plugin.config.Columns;
+        sceneScrollContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        sceneScrollContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        sceneScrollBar.AddChild(sceneScrollContent);
 
         PackedScene ps = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneEditListItem.tscn");
         for (int i = 0; i < data.palette.Paths.Count; i++)
@@ -128,19 +129,18 @@ public partial class Editing : WindowState<EditingData>
                 left: () => { GD.Print("Left"); },
                 right: () => { GD.Print("Right"); }
             );
-            paletteScrollContent.AddChild(item);
+            sceneScrollContent.AddChild(item);
         }
 
-        PackedScene addButton = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneAddListItem.tscn");
-        Control addButtonInstance = addButton.Instantiate() as Control;
-        SceneAddListItem.SetData(addButtonInstance, () =>
-        {
-            SetupFileDialog();
-        });
+        // makes problems with the sizing
 
-        paletteScrollContent.AddChild(addButtonInstance);
-        contentArea.AddChild(paletteScrollBar);
-
+        // PackedScene addButton = GD.Load<PackedScene>(plugin.config.WidgetPath + "SceneAddListItem.tscn");
+        // Control addButtonInstance = addButton.Instantiate() as Control;
+        // SceneAddListItem.SetData(addButtonInstance, () =>
+        // {
+        //     SetupFileDialog();
+        // });
+        //sceneScrollContent.AddChild(addButtonInstance);
 
 
         GenerateFooterBar();
@@ -150,6 +150,7 @@ public partial class Editing : WindowState<EditingData>
         footerContent.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         footerContent.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         footerBar.AddChild(footerContent);
+
 
         Button columnRemoveButton = new Button();
         columnRemoveButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
@@ -249,3 +250,4 @@ public partial class Editing : WindowState<EditingData>
         }
     }
 }
+

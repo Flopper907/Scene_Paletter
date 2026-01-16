@@ -164,7 +164,6 @@ public partial class Plugin : EditorPlugin
     }
 
     /* ============== Management ============== */
-
     public void SwitchState(string stateName, WindowStateData data)
     {
         if (panel == null) return;

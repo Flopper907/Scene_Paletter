@@ -10,7 +10,6 @@ public partial class Window : VBoxContainer
     {
         foreach (Node node in GetChildren())
         {
-
             RemoveChild(node);
             node.QueueFree();
         }
