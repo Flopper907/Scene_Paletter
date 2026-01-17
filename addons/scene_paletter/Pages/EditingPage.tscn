@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3 uid="uid://cdaqasq1stm7e"]
+
+[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/Pages/PageBase.tscn" id="1_78w1g"]
+[ext_resource type="PackedScene" uid="uid://b0m5qh4n4pjxu" path="res://addons/scene_paletter/Widgets/SceneEditListItem.tscn" id="2_6wxe7"]
+
+[sub_resource type="Theme" id="Theme_mbi7b"]
+default_font_size = 26
+
+[node name="Control" instance=ExtResource("1_78w1g")]
+
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer/MarginContainer" index="0"]
+layout_mode = 2
+theme = SubResource("Theme_mbi7b")
+text = "Title"
+placeholder_text = "Name"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/MarginContainer2" index="0"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+
+[node name="PanelContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="0" instance=ExtResource("2_6wxe7")]
+layout_mode = 2
+
+[node name="PanelContainer3" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="1" instance=ExtResource("2_6wxe7")]
+layout_mode = 2
+
+[node name="PanelContainer4" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="2" instance=ExtResource("2_6wxe7")]
+layout_mode = 2
+
+[node name="PanelContainer5" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="3" instance=ExtResource("2_6wxe7")]
+layout_mode = 2
+
+[node name="PanelContainer6" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="4" instance=ExtResource("2_6wxe7")]
+layout_mode = 2
+
+[node name="PanelContainer7" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="5" instance=ExtResource("2_6wxe7")]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer3" index="0"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "-"
+
+[node name="Button2" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="1"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+"
+
+[node name="Panel" type="Panel" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="2"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 8.0

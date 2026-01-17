@@ -1,0 +1,71 @@
+[gd_scene load_steps=4 format=3 uid="uid://b5c7qge1nv18i"]
+
+[ext_resource type="Script" uid="uid://dtfmnm2ugqosq" path="res://addons/scene_paletter/Pages/PalettePage.cs" id="2_78i0k"]
+[ext_resource type="PackedScene" uid="uid://bm4rn73dw0n6t" path="res://addons/scene_paletter/Widgets/PaletteListItem.tscn" id="3_de3xp"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_34obx"]
+font_size = 26
+
+[node name="PalettePageTest" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 350.0
+offset_bottom = 647.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_78i0k")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+text = "Palettes"
+label_settings = SubResource("LabelSettings_34obx")
+
+[node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/MarginContainer2"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PanelContainer2" parent="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer" instance=ExtResource("3_de3xp")]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="PanelContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer" instance=ExtResource("3_de3xp")]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Label2" parent="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer/HBoxContainer/Button" index="1"]
+text = "ID: 0000000"
+
+[node name="MarginContainer3" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/MarginContainer3"]
+layout_mode = 2
+text = "Create New"
+
+[connection signal="pressed" from="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer2/HBoxContainer/Button" to="." method="SelectPalette" binds= [1]]
+[connection signal="pressed" from="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer2/HBoxContainer/TextureButton" to="." method="DeletePalette" binds= [1]]
+[connection signal="pressed" from="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer/HBoxContainer/Button" to="." method="SelectPalette" binds= [0]]
+[connection signal="pressed" from="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer/HBoxContainer/TextureButton" to="." method="DeletePalette" binds= [0]]
+[connection signal="pressed" from="VBoxContainer/MarginContainer3/Button" to="." method="CreatePalette"]
+
+[editable path="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer2"]
+[editable path="VBoxContainer/MarginContainer2/ScrollContainer/VBoxContainer/PanelContainer"]

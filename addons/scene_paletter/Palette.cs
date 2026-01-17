@@ -1,3 +1,4 @@
+using Addons.ScenePaletter.Tools;
 using Godot;
 using System;
 using System.Collections.Generic;

@@ -1,33 +1,36 @@
 using System;
-using System.Collections.Generic;
-using Addons.ScenePaletter.States;
 using Godot;
+using Godot.Collections;
 
 namespace Addons.ScenePaletter;
 
 [Tool]
 public partial class Plugin : EditorPlugin
 {
+    public object data;
     public ConfigFile configFile;
     public Config config;
     public string state;
 
-    private Dictionary<string, WindowStateBase> states;
-    private Window panel;
+    private Dictionary<string, string> statePaths;
+    private Dictionary<string, PackedScene> states;
+    private PageDock panel;
     private Button toolbarButton2D;
     private Button toolbarButton3D;
-    private System.Action toolbarButtonAction;
+    private Action toolbarButtonAction;
 
     public override void _EnterTree()
     {
         InitToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         InitToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
+        InitConfig();
     }
 
     public override void _ExitTree()
     {
         DisposeToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         DisposeToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
+        DisposeConfig();
         CloseWindow();
     }
 
@@ -63,6 +66,7 @@ public partial class Plugin : EditorPlugin
         config.IdStart = (int)configFile.GetValue("file", "id_start");
         config.IdEnd = (int)configFile.GetValue("file", "id_end");
         config.StartState = (string)configFile.GetValue("state", "start_state");
+        statePaths = (Dictionary<string, string>)configFile.GetValue("state", "states");
     }
 
     private void DisposeConfig()
@@ -70,38 +74,29 @@ public partial class Plugin : EditorPlugin
         if (configFile == null) return;
         configFile.Dispose();
         configFile = null;
-
-        config = new Config();
-        config.PalettePath = "";
-        config.FileExtension = "";
-        config.PalettePath = "";
-        config.FileExtension = "";
-        config.StartState = "";
-        config.IdStart = 0;
-        config.IdEnd = 0;
+        states = null;
     }
 
     private void InitStates()
     {
-        states = new Dictionary<string, WindowStateBase>
+        if (configFile != null)
         {
-            {"PaletteList", new PaletteList(this)},
-            {"Editing", new Editing(this)},
-            {"Placing", new Placing(this)},
-        };
-        state = config.StartState;
-        SwitchState(state, new PaletteListData());
+            states = new Dictionary<string, PackedScene>();
+            foreach (var item in statePaths)
+            {
+                states[item.Key] = GD.Load<PackedScene>(item.Value);
+            }
+        }
     }
 
     private void DisposeStates()
     {
-        states = new Dictionary<string, WindowStateBase>();
-        state = "";
+        states = new Dictionary<string, PackedScene>();
     }
 
     private void InitWindow()
     {
-        panel = new Window();
+        panel = new PageDock(this);
         panel.Name = "Scene Palette";
         AddControlToDock(DockSlot.RightUl, panel);
     }
@@ -150,9 +145,9 @@ public partial class Plugin : EditorPlugin
     private void StartWindow()
     {
         if (IsInstanceValid(panel)) return;
-        InitConfig();
-        InitWindow();
         InitStates();
+        InitWindow();
+        SwitchState(config.StartState, null);
     }
 
     private void CloseWindow()
@@ -160,26 +155,27 @@ public partial class Plugin : EditorPlugin
         if (!IsInstanceValid(panel)) return;
         DisposeStates();
         DisposeWindow();
-        DisposeConfig();
     }
 
     /* ============== Management ============== */
-    public void SwitchState(string stateName, WindowStateData data)
+    public void SwitchState(string stateName, object data)
     {
         if (panel == null) return;
         if (states.ContainsKey(stateName))
         {
             state = stateName;
-            panel.SwitchToState(states[stateName], data);
+            this.data = data;
+            panel.SwitchToState(states[stateName]);
         }
     }
 
-    public void ReloadState(WindowStateData data)
+    public void ReloadState(object data)
     {
         if (panel == null) return;
         if (states.ContainsKey(state))
         {
-            panel.SwitchToState(states[state], data);
+            this.data = data;
+            panel.SwitchToState(states[state]);
         }
     }
 }

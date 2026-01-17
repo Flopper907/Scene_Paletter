@@ -1,4 +1,4 @@
-public partial class WindowStateData
-{
+// public partial class WindowStateData
+// {
 
-}
+// }

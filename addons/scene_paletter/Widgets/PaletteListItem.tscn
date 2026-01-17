@@ -6,15 +6,20 @@
 [sub_resource type="LabelSettings" id="LabelSettings_7uj0h"]
 font_color = Color(0.59717613, 0.59717613, 0.5971761, 1)
 
-[node name="PanelContainer" type="PanelContainer"]
+[node name="PanelContainer" type="PanelContainer" node_paths=PackedStringArray("nameLabel", "idLabel", "selectButton", "deleteButton")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -947.0
 offset_bottom = -578.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 script = ExtResource("1_7uj0h")
+nameLabel = NodePath("HBoxContainer/Button/Label")
+idLabel = NodePath("HBoxContainer/Button/Label2")
+selectButton = NodePath("HBoxContainer/Button")
+deleteButton = NodePath("HBoxContainer/TextureButton")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
