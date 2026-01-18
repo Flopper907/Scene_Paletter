@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://75ootmri50th"]
 
-[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/Pages/PageBase.tscn" id="1_kkp53"]
+[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/PageBase.tscn" id="1_kkp53"]
 [ext_resource type="Script" uid="uid://2tagogwvs22u" path="res://addons/scene_paletter/Pages/EditingPage.cs" id="2_04ens"]
 
 [node name="EditingPage" node_paths=PackedStringArray("sceneListView", "titleLineEdit") instance=ExtResource("1_kkp53")]
