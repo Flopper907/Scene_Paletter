@@ -8,24 +8,26 @@ namespace Addons.ScenePaletter.Pages;
 [Tool]
 public partial class PlacingPage : Page<PlacingPageData>
 {
-    [Export] public GridContainer paletteListView;
+    [Export] public GridContainer sceneListView;
     [Export] public Label titleLabel;
 
     public override void Initialize()
     {
         if (data.palette == null) plugin.SwitchState("PalettePage", null);
 
+        Title = "Scene Paletter";
+
         titleLabel.Text = data.palette.Name;
-        paletteListView.Columns = plugin.config.Columns;
+        sceneListView.Columns = plugin.config.Columns;
 
         PackedScene packedScene = GD.Load<PackedScene>(plugin.config.WidgetPath + "PlacingListItem.tscn");
         for (int i = 0; i < data.palette.Paths.Count; i++)
         {
             PlacingListItem item = packedScene.Instantiate() as PlacingListItem;
-            paletteListView.AddChild(item);
+            sceneListView.AddChild(item);
 
             int index = i;
-            item.SetData(data.palette.Paths[i], i == data.currentElement, () => Select(index));
+            item.SetData(data.palette.Paths[index], index == data.currentElement, () => Select(index));
         }
     }
 
@@ -38,7 +40,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Edit()
     {
-        plugin.SwitchState("EditPage", null);
+        plugin.SwitchState("EditingPage", new EditingPageData(data.palette));
     }
 
     public void Back()
@@ -60,6 +62,8 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Place()
     {
+        if (data.currentElement < 0 || data.currentElement >= data.palette.Paths.Count) return;
+
         PackedScene packedScene = GD.Load<PackedScene>(data.palette.Paths[data.currentElement]);
         if (packedScene == null) return;
         Node parent = GetParentNodeFromEditor();

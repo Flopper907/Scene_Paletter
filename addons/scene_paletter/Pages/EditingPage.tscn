@@ -1,72 +1,100 @@
-[gd_scene load_steps=4 format=3 uid="uid://cdaqasq1stm7e"]
+[gd_scene load_steps=3 format=3 uid="uid://75ootmri50th"]
 
-[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/Pages/PageBase.tscn" id="1_78w1g"]
-[ext_resource type="PackedScene" uid="uid://b0m5qh4n4pjxu" path="res://addons/scene_paletter/Widgets/SceneEditListItem.tscn" id="2_6wxe7"]
+[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/Pages/PageBase.tscn" id="1_kkp53"]
+[ext_resource type="Script" uid="uid://2tagogwvs22u" path="res://addons/scene_paletter/Pages/EditingPage.cs" id="2_04ens"]
 
-[sub_resource type="Theme" id="Theme_mbi7b"]
-default_font_size = 26
+[node name="EditingPage" node_paths=PackedStringArray("sceneListView", "titleLineEdit") instance=ExtResource("1_kkp53")]
+script = ExtResource("2_04ens")
+sceneListView = NodePath("Content/ScrollContainer/GridContainer")
+titleLineEdit = NodePath("Header/LineEdit")
 
-[node name="Control" instance=ExtResource("1_78w1g")]
+[node name="Label" parent="Header" index="0"]
+visible = false
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/MarginContainer" index="0"]
-layout_mode = 2
-theme = SubResource("Theme_mbi7b")
+[node name="LineEdit" type="LineEdit" parent="Header" index="1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 26
 text = "Title"
 placeholder_text = "Name"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/MarginContainer2" index="0"]
-layout_mode = 2
-horizontal_scroll_mode = 0
+[node name="Control" type="Control" parent="Content" index="0"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 32.0
+grow_horizontal = 2
 
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer" index="0"]
+[node name="Button" type="Button" parent="Content/Control" index="0"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_vertical = 2
+text = "Discard"
+
+[node name="Button2" type="Button" parent="Content/Control" index="1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_vertical = 2
+text = "Save"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content" index="1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="Content/ScrollContainer" index="0"]
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 3
+size_flags_vertical = 3
+columns = 2
 
-[node name="PanelContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="0" instance=ExtResource("2_6wxe7")]
-layout_mode = 2
+[node name="Footer" parent="." index="2"]
+grow_vertical = 0
 
-[node name="PanelContainer3" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="1" instance=ExtResource("2_6wxe7")]
-layout_mode = 2
-
-[node name="PanelContainer4" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="2" instance=ExtResource("2_6wxe7")]
-layout_mode = 2
-
-[node name="PanelContainer5" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="3" instance=ExtResource("2_6wxe7")]
-layout_mode = 2
-
-[node name="PanelContainer6" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="4" instance=ExtResource("2_6wxe7")]
-layout_mode = 2
-
-[node name="PanelContainer7" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="5" instance=ExtResource("2_6wxe7")]
-layout_mode = 2
-
-[node name="HBoxContainer" type="Control" parent="VBoxContainer/MarginContainer3" index="0"]
-layout_mode = 2
-
-[node name="Button" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="0"]
+[node name="Button" type="Button" parent="Footer" index="0"]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.1
-grow_vertical = 0
-size_flags_horizontal = 3
+anchor_bottom = 1.0
+grow_vertical = 2
 text = "-"
 
-[node name="Button2" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="1"]
+[node name="Button2" type="Button" parent="Footer" index="1"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.1
 anchor_right = 0.2
-grow_vertical = 0
-size_flags_horizontal = 3
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "+"
 
-[node name="Button3" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="2"]
+[node name="Button3" type="Button" parent="Footer" index="2"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.2
 anchor_right = 1.0
-grow_vertical = 0
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 8.0
-text = "Place"
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "Add Scene"
+
+[connection signal="text_submitted" from="Header/LineEdit" to="." method="SetTitle"]
+[connection signal="pressed" from="Content/Control/Button" to="." method="Discard"]
+[connection signal="pressed" from="Content/Control/Button2" to="." method="Save"]
+[connection signal="pressed" from="Footer/Button" to="." method="RemoveColumn"]
+[connection signal="pressed" from="Footer/Button2" to="." method="AddColumn"]
+[connection signal="pressed" from="Footer/Button3" to="." method="Add"]

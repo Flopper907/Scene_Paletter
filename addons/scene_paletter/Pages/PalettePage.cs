@@ -22,15 +22,15 @@ public partial class PalettePage : Page<PalettePageData>
 
     public override void Initialize()
     {
-        Title = "Scene Palette";
+        Title = "Scene Paletter";
         data = new PalettePageData();
         data.palettes = LoadPalettes();
 
-        PackedScene paletteWidget = GD.Load<PackedScene>(plugin.config.WidgetPath + "PaletteListItem.tscn");
+        PackedScene packedScene = GD.Load<PackedScene>(plugin.config.WidgetPath + "PaletteListItem.tscn");
         for (int i = 0; i < data.palettes.Count; i++)
         {
             Palette palette = data.palettes[i];
-            PaletteListItem item = paletteWidget.Instantiate() as PaletteListItem;
+            PaletteListItem item = packedScene.Instantiate() as PaletteListItem;
             paletteListView.AddChild(item);
             int position = i;
             item.SetData(palette.Name, palette.UID, () => SelectPalette(position), () => DeletePalette(position));

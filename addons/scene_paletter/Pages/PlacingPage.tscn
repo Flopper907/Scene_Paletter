@@ -3,16 +3,41 @@
 [ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/Pages/PageBase.tscn" id="1_rpqou"]
 [ext_resource type="Script" uid="uid://b6veyigay1ry5" path="res://addons/scene_paletter/Pages/PlacingPage.cs" id="2_i5epu"]
 
-[node name="PlacingPageNewwer" node_paths=PackedStringArray("paletteListView", "titleLabel") instance=ExtResource("1_rpqou")]
+[node name="PlacingPageNewwer" node_paths=PackedStringArray("sceneListView", "titleLabel") instance=ExtResource("1_rpqou")]
 script = ExtResource("2_i5epu")
-paletteListView = NodePath("Content/ScrollContainer/GridContainer")
+sceneListView = NodePath("Content/ScrollContainer/GridContainer")
 titleLabel = NodePath("Header/Label")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Content" index="0"]
+[node name="Control" type="Control" parent="Content" index="0"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 32.0
+grow_horizontal = 2
+
+[node name="Button" type="Button" parent="Content/Control" index="0"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_vertical = 2
+text = "Back"
+
+[node name="Button2" type="Button" parent="Content/Control" index="1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_vertical = 2
+text = "Edit"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content" index="1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -53,6 +78,8 @@ grow_horizontal = 0
 grow_vertical = 2
 text = "Place"
 
+[connection signal="pressed" from="Content/Control/Button" to="." method="Back"]
+[connection signal="pressed" from="Content/Control/Button2" to="." method="Edit"]
 [connection signal="pressed" from="Footer/Button" to="." method="RemoveColumn"]
 [connection signal="pressed" from="Footer/Button2" to="." method="AddColumn"]
 [connection signal="pressed" from="Footer/Button3" to="." method="Place"]

@@ -21,5 +21,14 @@ public partial class PageDock : VBoxContainer
         }
         page = scene.Instantiate() as Control;
         AddChild(page);
+        CallDeferred(MethodName.UpdateName);
+    }
+
+    private void UpdateName()
+    {
+        if (page != null)
+        {
+            Name = page.Get("Title").AsString();
+        }
     }
 }
