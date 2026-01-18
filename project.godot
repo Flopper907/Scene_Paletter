@@ -17,7 +17,3 @@ config/icon="res://icon.svg"
 [dotnet]
 
 project/assembly_name="Node-Palatter"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/scene_paletter/plugin.cfg")

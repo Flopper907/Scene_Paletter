@@ -4,7 +4,7 @@ using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
 using Godot;
 
-namespace Addons.ScenePaletter.States;
+namespace Addons.ScenePaletter.Pages;
 
 public struct PalettePageData
 {
@@ -14,17 +14,15 @@ public struct PalettePageData
     }
     public List<Palette> palettes;
 }
+
 [Tool]
 public partial class PalettePage : Page<PalettePageData>
 {
     [Export] public VBoxContainer paletteListView;
-    public PalettePage()
-    {
-        Title = "Scene Palette";
-    }
 
     public override void Initialize()
     {
+        Title = "Scene Palette";
         data = new PalettePageData();
         data.palettes = LoadPalettes();
 
@@ -41,7 +39,7 @@ public partial class PalettePage : Page<PalettePageData>
 
     public void SelectPalette(int index)
     {
-        GD.Print("Select: " + index);
+        plugin.SwitchState("PlacingPage", new PlacingPageData(data.palettes[index]));
     }
 
     public void CreatePalette()
@@ -72,9 +70,6 @@ public partial class PalettePage : Page<PalettePageData>
 
         return palettes;
     }
-
-
-
 
     private void SavePalette(Palette palette)
     {

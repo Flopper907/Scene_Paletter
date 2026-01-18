@@ -1,92 +1,58 @@
-[gd_scene load_steps=4 format=3 uid="uid://du5p33pgal1fg"]
+[gd_scene load_steps=3 format=3 uid="uid://xjihbdk14gmd"]
 
-[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/States/PageBase.tscn" id="1_ivwyf"]
-[ext_resource type="PackedScene" uid="uid://c2pgo5wkq2ofi" path="res://addons/scene_paletter/Widgets/SceneListItem.tscn" id="2_05r80"]
+[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/Pages/PageBase.tscn" id="1_rpqou"]
+[ext_resource type="Script" uid="uid://b6veyigay1ry5" path="res://addons/scene_paletter/Pages/PlacingPage.cs" id="2_i5epu"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_5anfl"]
-font_size = 26
+[node name="PlacingPageNewwer" node_paths=PackedStringArray("paletteListView", "titleLabel") instance=ExtResource("1_rpqou")]
+script = ExtResource("2_i5epu")
+paletteListView = NodePath("Content/ScrollContainer/GridContainer")
+titleLabel = NodePath("Header/Label")
 
-[node name="Control" instance=ExtResource("1_ivwyf")]
+[node name="ScrollContainer" type="ScrollContainer" parent="Content" index="0"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/MarginContainer" index="0"]
-layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
-text = "Title"
-label_settings = SubResource("LabelSettings_5anfl")
-
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/MarginContainer2" index="0"]
-layout_mode = 2
-horizontal_scroll_mode = 0
-
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer" index="0"]
+[node name="GridContainer" type="GridContainer" parent="Content/ScrollContainer" index="0"]
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 3
+size_flags_vertical = 3
+columns = 2
 
-[node name="PanelContainer" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="0" instance=ExtResource("2_05r80")]
-layout_mode = 2
+[node name="Footer" parent="." index="2"]
+grow_vertical = 0
 
-[node name="PanelContainer2" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="1" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer3" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="2" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer4" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="3" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer5" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="4" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer6" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="5" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer7" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="6" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer8" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="7" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer9" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="8" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer10" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="9" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer11" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="10" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer12" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="11" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer13" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="12" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer14" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="13" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer15" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="14" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="PanelContainer16" parent="VBoxContainer/MarginContainer2/ScrollContainer/GridContainer" index="15" instance=ExtResource("2_05r80")]
-layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer3" index="0"]
-layout_mode = 2
-
-[node name="Button" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="0"]
-layout_mode = 2
-size_flags_horizontal = 3
+[node name="Button" type="Button" parent="Footer" index="0"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.1
+anchor_bottom = 1.0
+grow_vertical = 2
 text = "-"
 
-[node name="Button2" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="1"]
-layout_mode = 2
-size_flags_horizontal = 3
+[node name="Button2" type="Button" parent="Footer" index="1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_right = 0.2
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "+"
 
-[node name="Button3" type="Button" parent="VBoxContainer/MarginContainer3/HBoxContainer" index="2"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 8.0
+[node name="Button3" type="Button" parent="Footer" index="2"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.2
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 2
 text = "Place"
+
+[connection signal="pressed" from="Footer/Button" to="." method="RemoveColumn"]
+[connection signal="pressed" from="Footer/Button2" to="." method="AddColumn"]
+[connection signal="pressed" from="Footer/Button3" to="." method="Place"]

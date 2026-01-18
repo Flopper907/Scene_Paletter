@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Formats.Tar;
 using Godot;
 
 namespace Addons.ScenePaletter;
@@ -23,7 +20,6 @@ public partial class PageDock : VBoxContainer
             page.QueueFree();
         }
         page = scene.Instantiate() as Control;
-
         AddChild(page);
     }
 }

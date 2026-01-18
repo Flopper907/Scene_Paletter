@@ -10,6 +10,7 @@ public abstract partial class Page<T> : Control
 
     public string Title { get; protected set; }
 
+
     public abstract void Initialize();
 
     public override void _Ready()
