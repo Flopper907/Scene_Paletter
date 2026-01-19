@@ -87,78 +87,89 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Place()
     {
-        if (data.currentElement < 0 || data.currentElement >= data.palette.Paths.Count) return;
+        // Check valid selection
+        if (data.currentElement < 0 || data.currentElement >= data.palette.Paths.Count)
+            return;
 
         PackedScene packedScene = GD.Load<PackedScene>(data.palette.Paths[data.currentElement]);
-        if (packedScene == null) return;
+        if (packedScene == null)
+            return;
+
         Node parent = GetParentNodeFromEditor();
         Node instance = packedScene.Instantiate();
 
+        bool lastValid = data.lastSpawned != null && IsInstanceValid(data.lastSpawned) && data.lastSpawned.IsInsideTree();
+        if (!lastValid) data.lastSpawned = null;
+        bool prevValid = data.previousSpawned != null && IsInstanceValid(data.previousSpawned) && data.previousSpawned.IsInsideTree();
+        if (!prevValid) data.previousSpawned = null;
+
+        // --- NODE2D BRANCH ---
         if (parent is Node2D parent2D && instance is Node2D instance2D)
         {
             // Handle positioning
-            if (data.lastSpawned is Node2D last2D)
+            Vector2 spawnPos;
+            if (data.lastSpawned == null)
             {
-                if (parent2D == last2D)
-                {
-                    parent2D = last2D.GetParent() as Node2D;
-                }
-                if (data.previousSpawned is Node2D previous2D)
-                {
-                    Vector2 nextPos = CalculateNextPosition(previous2D, last2D);
-                    instance2D.GlobalPosition = nextPos;
-                }
-                else
-                {
-                    // Only one previous spawn, place at same position
-                    instance2D.GlobalPosition = last2D.GlobalPosition;
-                }
+                spawnPos = parent2D.GlobalPosition; // First spawn or reset
             }
-            // else: first spawn, use default position (0,0 or wherever parent is)
+            else if (data.previousSpawned == null)
+            {
+                spawnPos = ((Node2D)data.lastSpawned).GlobalPosition; // Only last exists
+            }
+            else
+            {
+                spawnPos = 2f * ((Node2D)data.lastSpawned).GlobalPosition - ((Node2D)data.previousSpawned).GlobalPosition;
+            }
 
+            // Add to tree before positioning
             parent2D.AddChild(instance);
             instance.Owner = parent.GetTree().EditedSceneRoot;
 
+            // Apply calculated position
+            instance2D.GlobalPosition = spawnPos;
+
             // Update spawn tracking
             data.previousSpawned = data.lastSpawned;
             data.lastSpawned = instance;
         }
+        // --- NODE3D BRANCH ---
         else if (parent is Node3D parent3D && instance is Node3D instance3D)
         {
             // Handle positioning
-            if (data.lastSpawned is Node3D last3D)
+            Vector3 spawnPos;
+            if (data.lastSpawned == null)
             {
-                if (parent3D == last3D)
-                {
-                    parent3D = last3D.GetParent() as Node3D;
-                }
-                if (data.previousSpawned is Node3D previous3D)
-                {
-                    Vector3 nextPos = CalculateNextPosition(previous3D, last3D);
-                    instance3D.GlobalPosition = nextPos;
-                }
-                else
-                {
-                    // Only one previous spawn, place at same position
-                    instance3D.GlobalPosition = last3D.GlobalPosition;
-                }
+                spawnPos = parent3D.GlobalPosition; // First spawn or reset
             }
-            // else: first spawn, use default position (0,0,0 or wherever parent is)
+            else if (data.previousSpawned == null)
+            {
+                spawnPos = ((Node3D)data.lastSpawned).GlobalPosition; // Only last exists
+            }
+            else
+            {
+                spawnPos = 2f * ((Node3D)data.lastSpawned).GlobalPosition - ((Node3D)data.previousSpawned).GlobalPosition;
+            }
 
+            // Add to tree before positioning
             parent3D.AddChild(instance);
             instance.Owner = parent.GetTree().EditedSceneRoot;
+
+            // Apply calculated position
+            instance3D.GlobalPosition = spawnPos;
 
             // Update spawn tracking
             data.previousSpawned = data.lastSpawned;
             data.lastSpawned = instance;
         }
+        // --- INVALID PARENT / INSTANCE TYPE ---
         else
         {
             GD.PrintErr("Parent and instance type mismatch or unsupported node type");
             instance.Free();
+            return;
         }
 
-        // Mark scene as unsaved
+        // Mark scene as unsaved in the editor
         EditorInterface.Singleton.MarkSceneAsUnsaved();
     }
 
