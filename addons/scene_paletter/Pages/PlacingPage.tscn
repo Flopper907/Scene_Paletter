@@ -3,10 +3,11 @@
 [ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/PageBase.tscn" id="1_rpqou"]
 [ext_resource type="Script" uid="uid://b6veyigay1ry5" path="res://addons/scene_paletter/Pages/PlacingPage.cs" id="2_i5epu"]
 
-[node name="PlacingPageNewwer" node_paths=PackedStringArray("sceneListView", "titleLabel") instance=ExtResource("1_rpqou")]
+[node name="PlacingPage" node_paths=PackedStringArray("sceneListView", "titleLabel", "scrollContainer") instance=ExtResource("1_rpqou")]
 script = ExtResource("2_i5epu")
 sceneListView = NodePath("Content/ScrollContainer/GridContainer")
 titleLabel = NodePath("Header/Label")
+scrollContainer = NodePath("Content/ScrollContainer")
 
 [node name="Control" type="Control" parent="Content" index="0"]
 layout_mode = 1

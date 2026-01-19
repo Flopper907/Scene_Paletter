@@ -11,6 +11,7 @@ public partial class EditingPage : Page<EditingPageData>
 {
     [Export] public GridContainer sceneListView;
     [Export] public LineEdit titleLineEdit;
+    [Export] public ScrollContainer scrollContainer;
 
     public override void Initialize()
     {
@@ -30,12 +31,34 @@ public partial class EditingPage : Page<EditingPageData>
             int index = i;
             item.SetData(data.palette.Paths[i], data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
         }
+
+        CallDeferred(MethodName.ApplyScrollPosition);
+    }
+
+    private async void ApplyScrollPosition()
+    {
+        if (scrollContainer != null && data.savedScrollPosition >= 0)
+        {
+            // Wait for the next frame to ensure layout is complete
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+            if (IsInstanceValid(scrollContainer))
+            {
+                scrollContainer.ScrollVertical = data.savedScrollPosition;
+            }
+        }
+    }
+
+    private void ReloadWithScrollSave()
+    {
+        data.savedScrollPosition = scrollContainer.ScrollVertical;
+        plugin.ReloadState(data);
     }
 
     public void SetTitle(string text)
     {
         data.palette.Name = text;
-        plugin.ReloadState(data);
+        ReloadWithScrollSave();
     }
 
     public void ToggleSelect(int index)
@@ -48,7 +71,7 @@ public partial class EditingPage : Page<EditingPageData>
         {
             data.selectedElements.Add(index);
         }
-        plugin.ReloadState(data);
+        ReloadWithScrollSave();
     }
 
     public void Delete(int index)
@@ -62,6 +85,7 @@ public partial class EditingPage : Page<EditingPageData>
         }
         data.palette.Paths = newPaths;
         data.selectedElements.Clear();
+        data.savedScrollPosition = 0;
         plugin.ReloadState(data);
     }
 
@@ -85,12 +109,14 @@ public partial class EditingPage : Page<EditingPageData>
     public void AddColumn()
     {
         plugin.config.Columns = Math.Min(plugin.config.MaxColums, plugin.config.Columns + 1);
+        data.savedScrollPosition = 0;
         plugin.ReloadState(data);
     }
 
     public void RemoveColumn()
     {
         plugin.config.Columns = Math.Max(plugin.config.MinColums, plugin.config.Columns - 1);
+        data.savedScrollPosition = 0;
         plugin.ReloadState(data);
     }
 
@@ -125,6 +151,8 @@ public partial class EditingPage : Page<EditingPageData>
                 data.palette.Paths.Add(uidString);
             }
         }
+
+        data.savedScrollPosition = 0;
         plugin.ReloadState(data);
     }
 }
@@ -137,9 +165,11 @@ public struct EditingPageData
         this.palette = palette;
         old = palette.Copy();
         selectedElements = new List<int>();
+        savedScrollPosition = 0;
     }
     public Palette palette;
     public Palette old;
     public List<int> selectedElements;
     public bool changed = false;
+    public int savedScrollPosition;
 }

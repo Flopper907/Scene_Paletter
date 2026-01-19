@@ -10,6 +10,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 {
     [Export] public GridContainer sceneListView;
     [Export] public Label titleLabel;
+    [Export] public ScrollContainer scrollContainer;
 
     public override void Initialize()
     {
@@ -29,13 +30,35 @@ public partial class PlacingPage : Page<PlacingPageData>
             int index = i;
             item.SetData(data.palette.Paths[index], index == data.currentElement, () => Select(index));
         }
+
+        CallDeferred(MethodName.ApplyScrollPosition);
+    }
+
+    private async void ApplyScrollPosition()
+    {
+        if (scrollContainer != null && data.savedScrollPosition >= 0)
+        {
+            // Wait for the next frame to ensure layout is complete
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+
+            if (IsInstanceValid(scrollContainer))
+            {
+                scrollContainer.ScrollVertical = data.savedScrollPosition;
+            }
+        }
+    }
+
+    private void ReloadWithScrollSave()
+    {
+        data.savedScrollPosition = scrollContainer.ScrollVertical;
+        plugin.ReloadState(data);
     }
 
     public void Select(int index)
     {
         data.previousElement = data.currentElement;
         data.currentElement = index;
-        plugin.ReloadState(data);
+        ReloadWithScrollSave();
     }
 
     public void Edit()
@@ -51,12 +74,14 @@ public partial class PlacingPage : Page<PlacingPageData>
     public void AddColumn()
     {
         plugin.config.Columns = Math.Min(plugin.config.MaxColums, plugin.config.Columns + 1);
+        data.savedScrollPosition = 0;
         plugin.ReloadState(data);
     }
 
     public void RemoveColumn()
     {
         plugin.config.Columns = Math.Max(plugin.config.MinColums, plugin.config.Columns - 1);
+        data.savedScrollPosition = 0;
         plugin.ReloadState(data);
     }
 
@@ -201,6 +226,7 @@ public struct PlacingPageData
         previousElement = -1;
         lastSpawned = null;
         previousSpawned = null;
+        savedScrollPosition = 0;
     }
 
     public PlacingPageData(Palette palette)
@@ -210,6 +236,7 @@ public struct PlacingPageData
         previousElement = -1;
         lastSpawned = null;
         previousSpawned = null;
+        savedScrollPosition = 0;
     }
 
     public Palette palette;
@@ -217,4 +244,5 @@ public struct PlacingPageData
     public int previousElement = -1;
     public Node lastSpawned;
     public Node previousSpawned;
+    public int savedScrollPosition;
 }
