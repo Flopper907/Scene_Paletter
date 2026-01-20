@@ -54,6 +54,12 @@ public partial class PlacingPage : Page<PlacingPageData>
         plugin.ReloadState(data);
     }
 
+    private void ReloadWithoutScrollSave()
+    {
+        data.savedScrollPosition = 0;
+        plugin.ReloadState(data);
+    }
+
     public void Select(int index)
     {
         data.previousElement = data.currentElement;
@@ -73,16 +79,14 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void AddColumn()
     {
-        plugin.config.Columns = Math.Min(plugin.config.MaxColums, plugin.config.Columns + 1);
-        data.savedScrollPosition = 0;
-        plugin.ReloadState(data);
+        plugin.config.AddColumn();
+        ReloadWithoutScrollSave();
     }
 
     public void RemoveColumn()
     {
-        plugin.config.Columns = Math.Max(plugin.config.MinColums, plugin.config.Columns - 1);
-        data.savedScrollPosition = 0;
-        plugin.ReloadState(data);
+        plugin.config.RemoveColumn();
+        ReloadWithoutScrollSave();
     }
 
     public void Place()
@@ -187,44 +191,6 @@ public partial class PlacingPage : Page<PlacingPageData>
             parentNode = selectedNodes[0]; // Use the first selected node as parent
         }
         return parentNode;
-    }
-
-    private Vector2 CalculateNextPosition(Node2D previous, Node2D last)
-    {
-        Vector2 spawnPosition = Vector2.Zero;
-
-        if (GodotObject.IsInstanceValid(last))
-        {
-            if (GodotObject.IsInstanceValid(previous))
-            {
-                spawnPosition = 2f * last.GlobalPosition - previous.GlobalPosition;
-            }
-            else
-            {
-                spawnPosition = last.GlobalPosition;
-            }
-        }
-
-        return spawnPosition;
-    }
-
-    private Vector3 CalculateNextPosition(Node3D previous, Node3D last)
-    {
-        Vector3 spawnPosition = Vector3.Zero;
-
-        if (GodotObject.IsInstanceValid(last))
-        {
-            if (GodotObject.IsInstanceValid(previous))
-            {
-                spawnPosition = 2f * last.GlobalPosition - previous.GlobalPosition;
-            }
-            else
-            {
-                spawnPosition = last.GlobalPosition;
-            }
-        }
-
-        return spawnPosition;
     }
 }
 

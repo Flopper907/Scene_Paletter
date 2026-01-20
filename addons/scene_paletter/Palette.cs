@@ -28,6 +28,40 @@ public class Palette
         return s;
     }
 
+    public static Palette CreateEmptyPalette(Plugin plugin, int position)
+    {
+        Palette palette = new Palette();
+        palette.Name = "Untitled";
+        palette.UID = IDGenerator.GenerateID(plugin.config.IdStart, plugin.config.IdEnd).ToString();
+        palette.Position = position;
+        return palette;
+    }
+
+    public static List<Palette> LoadPalettes(Plugin plugin)
+    {
+        List<Palette> palettes = new List<Palette>();
+        var paletteData = SaveLoad.LoadAllWithFile<Palette>(plugin.config.PalettePath, ".json");
+        foreach (var p in paletteData)
+        {
+            p.data.UID = p.filename.Replace(plugin.config.FileExtension, "");
+            palettes.Add(p.data);
+        }
+
+        palettes.Sort((a, b) => a.Position.CompareTo(b.Position));
+
+        return palettes;
+    }
+
+    public static void SavePalette(Plugin plugin, Palette palette)
+    {
+        SaveLoad.Save(palette, plugin.config.PalettePath + palette.UID + plugin.config.FileExtension);
+    }
+
+    public static void DeletePalette(Plugin plugin, Palette palette)
+    {
+        SaveLoad.Delete(plugin.config.PalettePath + palette.UID + plugin.config.FileExtension);
+    }
+
     public Palette Copy()
     {
         return new Palette

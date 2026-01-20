@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using Godot;
 
 namespace Addons.ScenePaletter.Widgets;
@@ -19,10 +18,4 @@ public partial class PaletteListItem : PanelContainer
         selectButton.Pressed += selection;
         deleteButton.Pressed += deletion;
     }
-
-    internal void SetData(string name, string uID, object v1, object v2)
-    {
-        throw new NotImplementedException();
-    }
-
 }

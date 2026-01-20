@@ -47,6 +47,16 @@ public partial class Plugin : EditorPlugin
         public int Columns;
         public int IdStart;
         public int IdEnd;
+
+        public void AddColumn()
+        {
+            Columns = Math.Min(MaxColums, Columns + 1);
+        }
+
+        public void RemoveColumn()
+        {
+            Columns = Math.Max(MinColums, Columns - 1);
+        }
     }
 
     /* ============== Init/Dispose ============== */
