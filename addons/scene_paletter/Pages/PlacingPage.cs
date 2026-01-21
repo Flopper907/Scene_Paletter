@@ -29,14 +29,21 @@ public partial class PlacingPage : Page<PlacingPageData>
             sceneListView.AddChild(item);
 
             int index = i;
-            item.SetData(data.palette.Paths[index], index == data.currentElement, () => Select(index));
+            string uid = data.palette.Paths[index];
+
+            PackedScene scene = GD.Load<PackedScene>(uid);
+            Node node = scene.Instantiate();
+
+            item.SetData(node.Name, index == data.currentElement, () => Select(index));
             ScenePreviewGenerator.GeneratePreview(
-                GD.Load<PackedScene>(data.palette.Paths[index]),
+                scene,
                 plugin.config.PreviewResolution,
                 plugin.config.PreviewMargin,
                 plugin.config.PreviewTransparent,
                 item.SetTexture
             );
+
+            node.Free();
         }
 
         CallDeferred(MethodName.ApplyScrollPosition);

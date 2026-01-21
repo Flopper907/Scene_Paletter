@@ -1,4 +1,5 @@
 using System;
+using Addons.ScenePaletter.Tools;
 using Godot;
 using Godot.Collections;
 
@@ -179,6 +180,7 @@ public partial class Plugin : EditorPlugin
         DisposeStates();
         DisposeWindow();
         DisposeConfig();
+        ScenePreviewGenerator.ClearCache();
     }
 
     /* ============== Management ============== */

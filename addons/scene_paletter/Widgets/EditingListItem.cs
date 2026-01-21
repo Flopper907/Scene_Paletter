@@ -14,10 +14,14 @@ public partial class EditingListItem : PanelContainer
 
     public void SetData(string name, bool selected, Action selection, Action deletion)
     {
-        //textureRect.Texture = image;
         selectButton.Pressed += selection;
         deleteButton.Pressed += deletion;
         nameLabel.Text = name;
         selectionPanel.Visible = selected;
+    }
+
+    public void SetTexture(Texture2D texture)
+    {
+        textureRect.Texture = texture;
     }
 }

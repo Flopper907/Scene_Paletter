@@ -7,7 +7,12 @@ gradient = SubResource("Gradient_qw86r")
 fill_from = Vector2(1, 0)
 fill_to = Vector2(0, 0)
 
-[node name="B" type="Node2D"]
+[node name="Test_Object_B" type="Node2D"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("GradientTexture2D_iul4i")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(85, 72)
+scale = Vector2(-0.64419967, 4.346878)
 texture = SubResource("GradientTexture2D_iul4i")

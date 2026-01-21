@@ -7,8 +7,16 @@ namespace Addons.ScenePaletter.Tools;
 
 public static class ScenePreviewGenerator
 {
+    private static Dictionary<PackedScene, Texture2D> cache = new Dictionary<PackedScene, Texture2D>();
+
     public static async void GeneratePreview(PackedScene scene, Vector2I size, Vector2 margin, bool transparent, Action<Texture2D> action)
     {
+        if (cache.ContainsKey(scene))
+        {
+            action?.Invoke(cache[scene]);
+            return;
+        }
+
         // Create viewport with proper settings
         SubViewport subViewport = new SubViewport();
         subViewport.Size = size;
@@ -16,14 +24,14 @@ public static class ScenePreviewGenerator
         subViewport.RenderTargetUpdateMode = SubViewport.UpdateMode.Once;
 
         // Instantiate scene
-        Node parent = scene.Instantiate();
-        subViewport.AddChild(parent);
+        Node node = scene.Instantiate();
+        subViewport.AddChild(node);
 
         Vector2 minPos = Vector2.Zero;
         Vector2 maxPos = Vector2.Zero;
 
         Queue<Node> queue = new Queue<Node>();
-        queue.Enqueue(parent);
+        queue.Enqueue(node);
         while (queue.Count > 0)
         {
             Node current = queue.Dequeue();
@@ -70,7 +78,8 @@ public static class ScenePreviewGenerator
         Image image = texture.GetImage();
         ImageTexture imageTexture = ImageTexture.CreateFromImage(image);
 
-        subViewport.QueueFree();
+        subViewport.Free();
+        cache[scene] = imageTexture;
         action?.Invoke(imageTexture);
     }
 
@@ -81,7 +90,7 @@ public static class ScenePreviewGenerator
             case Sprite2D sprite:
                 return new Rect2(
                     sprite.GlobalPosition + sprite.Offset,
-                    sprite.Texture == null ? Vector2.Zero : sprite.Texture.GetSize() * sprite.Scale);
+                    sprite.Texture == null ? Vector2.Zero : sprite.Texture.GetSize() * sprite.Scale / new Vector2(sprite.Hframes, sprite.Vframes));
             case Node2D node2d:
                 return new Rect2(node2d.Position, Vector2.Zero);
 
@@ -91,5 +100,10 @@ public static class ScenePreviewGenerator
             default:
                 return new Rect2(Vector2.Zero, Vector2.Zero);
         }
+    }
+
+    public static void ClearCache()
+    {
+        cache = new Dictionary<PackedScene, Texture2D>();
     }
 }

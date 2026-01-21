@@ -29,7 +29,19 @@ public partial class EditingPage : Page<EditingPageData>
             sceneListView.AddChild(item);
 
             int index = i;
-            item.SetData(data.palette.Paths[i], data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
+            string uid = data.palette.Paths[index];
+
+            PackedScene scene = GD.Load<PackedScene>(uid);
+            Node node = scene.Instantiate();
+
+            item.SetData(node.Name, data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
+            ScenePreviewGenerator.GeneratePreview(
+                scene,
+                plugin.config.PreviewResolution,
+                plugin.config.PreviewMargin,
+                plugin.config.PreviewTransparent,
+                item.SetTexture
+            );
         }
 
         CallDeferred(MethodName.ApplyScrollPosition);
