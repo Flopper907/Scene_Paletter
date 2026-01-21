@@ -13,9 +13,13 @@ public partial class PlacingListItem : PanelContainer
 
     public void SetData(string name, bool selected, Action selection)
     {
-        //textureRect.Texture = image;
         selectButton.Pressed += selection;
         nameLabel.Text = name;
         selectionPanel.Visible = selected;
+    }
+
+    public void SetTexture(Texture2D texture)
+    {
+        textureRect.Texture = texture;
     }
 }

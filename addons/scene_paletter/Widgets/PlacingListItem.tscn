@@ -34,6 +34,7 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer"]
+texture_filter = 1
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("2_7dv16")

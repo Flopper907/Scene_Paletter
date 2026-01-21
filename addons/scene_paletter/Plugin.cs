@@ -23,14 +23,12 @@ public partial class Plugin : EditorPlugin
     {
         InitToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         InitToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
-        InitConfig();
     }
 
     public override void _ExitTree()
     {
         DisposeToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         DisposeToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
-        DisposeConfig();
         CloseWindow();
     }
 
@@ -38,15 +36,18 @@ public partial class Plugin : EditorPlugin
 
     public struct Config
     {
-        public string PalettePath;
         public string WidgetPath;
+        public string PalettePath;
         public string FileExtension;
+        public int IdStart;
+        public int IdEnd;
         public string StartState;
         public int MinColums;
         public int MaxColums;
         public int Columns;
-        public int IdStart;
-        public int IdEnd;
+        public Vector2I PreviewResolution;
+        public Vector2 PreviewMargin;
+        public bool PreviewTransparent;
 
         public void AddColumn()
         {
@@ -67,16 +68,27 @@ public partial class Plugin : EditorPlugin
         configFile.Load("res://addons/scene_paletter/plugin.cfg");
 
         config = new Config();
-        config.PalettePath = (string)configFile.GetValue("file", "palette_path");
         config.WidgetPath = (string)configFile.GetValue("file", "widget_path");
+        config.PalettePath = (string)configFile.GetValue("file", "palette_path");
         config.FileExtension = (string)configFile.GetValue("file", "file_extension");
-        config.MinColums = (int)configFile.GetValue("state", "min_columns");
-        config.MaxColums = (int)configFile.GetValue("state", "max_columns");
-        config.Columns = Math.Clamp(2, config.MinColums, config.MaxColums);
         config.IdStart = (int)configFile.GetValue("file", "id_start");
         config.IdEnd = (int)configFile.GetValue("file", "id_end");
+
         config.StartState = (string)configFile.GetValue("state", "start_state");
         statePaths = (Dictionary<string, string>)configFile.GetValue("state", "states");
+
+        config.MaxColums = (int)configFile.GetValue("ui", "max_columns");
+        config.MinColums = (int)configFile.GetValue("ui", "min_columns");
+        config.Columns = Math.Clamp(2, config.MinColums, config.MaxColums);
+        config.PreviewResolution = new Vector2I(
+            (int)configFile.GetValue("ui", "preview_resolution_x"),
+            (int)configFile.GetValue("ui", "preview_resolution_y")
+        );
+        config.PreviewMargin = new Vector2(
+            (float)configFile.GetValue("ui", "preview_margin_x"),
+            (float)configFile.GetValue("ui", "preview_margin_x")
+        );
+        config.PreviewTransparent = (bool)configFile.GetValue("ui", "preview_transparent");
     }
 
     private void DisposeConfig()
@@ -155,6 +167,7 @@ public partial class Plugin : EditorPlugin
     private void StartWindow()
     {
         if (IsInstanceValid(panel)) return;
+        InitConfig();
         InitStates();
         InitWindow();
         SwitchState(config.StartState, null);
@@ -165,6 +178,7 @@ public partial class Plugin : EditorPlugin
         if (!IsInstanceValid(panel)) return;
         DisposeStates();
         DisposeWindow();
+        DisposeConfig();
     }
 
     /* ============== Management ============== */

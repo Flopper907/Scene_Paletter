@@ -1,4 +1,5 @@
 using System;
+using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
 using Godot;
 using Godot.Collections;
@@ -29,6 +30,13 @@ public partial class PlacingPage : Page<PlacingPageData>
 
             int index = i;
             item.SetData(data.palette.Paths[index], index == data.currentElement, () => Select(index));
+            ScenePreviewGenerator.GeneratePreview(
+                GD.Load<PackedScene>(data.palette.Paths[index]),
+                plugin.config.PreviewResolution,
+                plugin.config.PreviewMargin,
+                plugin.config.PreviewTransparent,
+                item.SetTexture
+            );
         }
 
         CallDeferred(MethodName.ApplyScrollPosition);

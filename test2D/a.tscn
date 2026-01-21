@@ -9,3 +9,17 @@ gradient = SubResource("Gradient_qcs2f")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = SubResource("GradientTexture2D_tydlr")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(67, -51)
+rotation = 1.5707964
+texture = SubResource("GradientTexture2D_tydlr")
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+position = Vector2(-18.999992, -81)
+texture = SubResource("GradientTexture2D_tydlr")
+
+[node name="Sprite2D4" type="Sprite2D" parent="."]
+position = Vector2(152, 34)
+scale = Vector2(2, 2)
+texture = SubResource("GradientTexture2D_tydlr")
