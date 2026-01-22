@@ -33,8 +33,10 @@ public partial class PlacingPage : Page<PlacingPageData>
 
             PackedScene scene = GD.Load<PackedScene>(uid);
             Node node = scene.Instantiate();
+            string name = node.Name;
+            node.Free();
 
-            item.SetData(node.Name, index == data.currentElement, () => Select(index));
+            item.SetData(name, index == data.currentElement, () => Select(index));
             ScenePreviewGenerator.GeneratePreview(
                 scene,
                 plugin.config.PreviewResolution,
@@ -42,8 +44,6 @@ public partial class PlacingPage : Page<PlacingPageData>
                 node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
                 item.SetTexture
             );
-
-            node.Free();
         }
 
         CallDeferred(MethodName.ApplyScrollPosition);

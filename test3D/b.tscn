@@ -1,8 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://mgc3ygwcodoo"]
+[gd_scene load_steps=6 format=3 uid="uid://mgc3ygwcodoo"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_t0l5p"]
+[ext_resource type="Texture2D" uid="uid://cfe4w361vwlvn" path="res://icon.svg" id="1_wmw5w"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uvpvt"]
+albedo_color = Color(0.36862746, 0.2784314, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ra1q5"]
+material = SubResource("StandardMaterial3D_uvpvt")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vw268"]
+albedo_color = Color(1, 1, 0.19607843, 1)
+albedo_texture = ExtResource("1_wmw5w")
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_gmydk"]
+material = SubResource("StandardMaterial3D_vw268")
 
 [node name="B" type="Node3D"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("CapsuleMesh_t0l5p")
+mesh = SubResource("CapsuleMesh_ra1q5")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.3535117, 1.1173187, -0.24757811, 0.43206707, 0.10963858, 1.111739, 1.0597231, -0.4174264, -0.3706857, 0.036572963, -0.9541428, -0.39869857)
+mesh = SubResource("CapsuleMesh_gmydk")

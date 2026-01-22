@@ -33,8 +33,10 @@ public partial class EditingPage : Page<EditingPageData>
 
             PackedScene scene = GD.Load<PackedScene>(uid);
             Node node = scene.Instantiate();
+            string name = node.Name;
+            node.Free();
 
-            item.SetData(node.Name, data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
+            item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
             ScenePreviewGenerator.GeneratePreview(
                 scene,
                 plugin.config.PreviewResolution,
