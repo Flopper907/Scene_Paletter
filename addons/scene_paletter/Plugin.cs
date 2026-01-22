@@ -48,7 +48,8 @@ public partial class Plugin : EditorPlugin
         public int Columns;
         public Vector2I PreviewResolution;
         public Vector2 PreviewMargin;
-        public bool PreviewTransparent;
+        public bool PreviewTransparent2D;
+        public bool PreviewTransparent3D;
 
         public void AddColumn()
         {
@@ -89,7 +90,8 @@ public partial class Plugin : EditorPlugin
             (float)configFile.GetValue("ui", "preview_margin_x"),
             (float)configFile.GetValue("ui", "preview_margin_x")
         );
-        config.PreviewTransparent = (bool)configFile.GetValue("ui", "preview_transparent");
+        config.PreviewTransparent2D = (bool)configFile.GetValue("ui", "preview_2d_transparent");
+        config.PreviewTransparent3D = (bool)configFile.GetValue("ui", "preview_3d_transparent");
     }
 
     private void DisposeConfig()

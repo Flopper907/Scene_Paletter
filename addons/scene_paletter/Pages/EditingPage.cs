@@ -39,7 +39,7 @@ public partial class EditingPage : Page<EditingPageData>
                 scene,
                 plugin.config.PreviewResolution,
                 plugin.config.PreviewMargin,
-                plugin.config.PreviewTransparent,
+                node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
                 item.SetTexture
             );
         }

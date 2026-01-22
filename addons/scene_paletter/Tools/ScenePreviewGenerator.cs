@@ -27,40 +27,14 @@ public static class ScenePreviewGenerator
         Node node = scene.Instantiate();
         subViewport.AddChild(node);
 
-        Vector2 minPos = Vector2.Zero;
-        Vector2 maxPos = Vector2.Zero;
-
-        Queue<Node> queue = new Queue<Node>();
-        queue.Enqueue(node);
-        while (queue.Count > 0)
+        if(node is Node2D node2D)
         {
-            Node current = queue.Dequeue();
-            foreach (Node child in current.GetChildren())
-            {
-                queue.Enqueue(child);
-
-                Rect2 rect = GetNodeRect(child);
-                minPos.X = Mathf.Min(minPos.X, rect.Position.X - rect.Size.X / 2);
-                minPos.Y = Mathf.Min(minPos.Y, rect.Position.Y - rect.Size.Y / 2);
-                maxPos.X = Mathf.Max(maxPos.X, rect.Position.X + rect.Size.X / 2);
-                maxPos.Y = Mathf.Max(maxPos.Y, rect.Position.Y + rect.Size.Y / 2);
-            }
+            SetupRender2D(subViewport,node2D, size, margin);
         }
-
-        // Add camera to frame the content
-        Camera2D camera = new Camera2D();
-        camera.Enabled = true;
-        subViewport.AddChild(camera);
-
-        // Center camera on content
-        Vector2 center = (minPos + maxPos) / 2;
-        Vector2 bounds = maxPos - minPos;
-        camera.Position = center;
-
-        // Adjust zoom to fit content
-        float zoomX = size.X / (bounds.X * margin.X);
-        float zoomY = size.Y / (bounds.Y * margin.Y);
-        camera.Zoom = Vector2.One * Mathf.Min(zoomX, zoomY);
+        else if(node is Node3D node3D)
+        {
+            SetupRender3D(subViewport,node3D, size, margin);
+        }
 
         Node root = ((SceneTree)Engine.GetMainLoop()).Root;
         root.AddChild(subViewport);
@@ -82,8 +56,52 @@ public static class ScenePreviewGenerator
         cache[scene] = imageTexture;
         action?.Invoke(imageTexture);
     }
+    private static void SetupRender3D(SubViewport subViewport, Node3D node, Vector2I size, Vector2 margin)
+    {
+        Camera3D camera = new Camera3D();
+        subViewport.AddChild(camera);
+    }
 
-    public static Rect2 GetNodeRect(Node node)
+    private static void SetupRender2D(SubViewport subViewport, Node2D node, Vector2I size, Vector2 margin)
+    {
+    
+        Vector2 minPos = Vector2.Zero;
+        Vector2 maxPos = Vector2.Zero;
+
+        Queue<Node> queue = new Queue<Node>();
+        queue.Enqueue(node);
+        while (queue.Count > 0)
+        {
+            Node current = queue.Dequeue();
+            foreach (Node child in current.GetChildren())
+            {
+                queue.Enqueue(child);
+
+                Rect2 rect = GetNodeRect2D(child);
+                minPos.X = Mathf.Min(minPos.X, rect.Position.X - rect.Size.X / 2);
+                minPos.Y = Mathf.Min(minPos.Y, rect.Position.Y - rect.Size.Y / 2);
+                maxPos.X = Mathf.Max(maxPos.X, rect.Position.X + rect.Size.X / 2);
+                maxPos.Y = Mathf.Max(maxPos.Y, rect.Position.Y + rect.Size.Y / 2);
+            }
+        }
+
+        // Add camera to frame the content
+        Camera2D camera = new Camera2D();
+        camera.Enabled = true;
+        subViewport.AddChild(camera);
+
+        // Center camera on content
+        Vector2 center = (minPos + maxPos) / 2;
+        Vector2 bounds = maxPos - minPos;
+        camera.Position = center;
+
+        // Adjust zoom to fit content
+        float zoomX = size.X / (bounds.X * margin.X);
+        float zoomY = size.Y / (bounds.Y * margin.Y);
+        camera.Zoom = Vector2.One * Mathf.Min(zoomX, zoomY);
+    }
+
+    public static Rect2 GetNodeRect2D(Node node)
     {
         switch (node)
         {
