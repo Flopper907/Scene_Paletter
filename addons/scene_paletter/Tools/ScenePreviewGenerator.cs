@@ -163,13 +163,13 @@ public static class ScenePreviewGenerator
 
         DirectionalLight3D light = new DirectionalLight3D();
         light.LightEnergy = 1.0f;
-        light.RotationDegrees = new Vector3(-30f, -45f, 0);
+        light.RotationDegrees = new Vector3(-30f, 120f, 0);
         subViewport.AddChild(light);
 
         Camera3D camera = new Camera3D();
         camera.Projection = Camera3D.ProjectionType.Perspective;
 
-        Vector3 position = center - new Vector3(bounds.X, bounds.Y * -0.75f, bounds.Z) * (Mathf.Max(margin.X, margin.Y) - 0.1f);
+        Vector3 position = center + new Vector3(bounds.X, bounds.Y * 0.75f, bounds.Z) * (Mathf.Max(margin.X, margin.Y) - 0.1f);
 
         subViewport.AddChild(camera);
         camera.LookAtFromPosition(position, center, Vector3.Up);

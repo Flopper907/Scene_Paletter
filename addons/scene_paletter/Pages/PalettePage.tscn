@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/PageBase.tscn" id="1_hhhll"]
 [ext_resource type="Script" uid="uid://dtfmnm2ugqosq" path="res://addons/scene_paletter/Pages/PalettePage.cs" id="2_8k1lx"]
 
-[node name="PalettePageNewwer" node_paths=PackedStringArray("paletteListView") instance=ExtResource("1_hhhll")]
+[node name="PalettePage" node_paths=PackedStringArray("paletteListView") instance=ExtResource("1_hhhll")]
 script = ExtResource("2_8k1lx")
 paletteListView = NodePath("Content/ScrollContainer/VBoxContainer")
 
@@ -28,9 +28,13 @@ grow_vertical = 0
 
 [node name="Button" type="Button" parent="Footer" index="0"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Create New"
