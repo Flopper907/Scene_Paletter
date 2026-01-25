@@ -15,7 +15,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public override void Initialize()
     {
-        if (data.palette == null) plugin.SwitchState("PalettePage", null);
+        if (data.palette == null) dock.SwitchPage("PalettePage", null);
 
         Title = "Scene Paletter";
 
@@ -66,13 +66,13 @@ public partial class PlacingPage : Page<PlacingPageData>
     private void ReloadWithScrollSave()
     {
         data.savedScrollPosition = scrollContainer.ScrollVertical;
-        plugin.ReloadState(data);
+        dock.Reload(data);
     }
 
     private void ReloadWithoutScrollSave()
     {
         data.savedScrollPosition = 0;
-        plugin.ReloadState(data);
+        dock.Reload(data);
     }
 
     public void Select(int index)
@@ -84,12 +84,12 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Edit()
     {
-        plugin.SwitchState("EditingPage", new EditingPageData(data.palette));
+        dock.SwitchPage("EditingPage", new EditingPageData(data.palette));
     }
 
     public void Back()
     {
-        plugin.SwitchState("PalettePage", null);
+        dock.SwitchPage("PalettePage", null);
     }
 
     public void AddColumn()

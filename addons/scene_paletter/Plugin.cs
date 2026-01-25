@@ -1,21 +1,23 @@
 using System;
-using Addons.ScenePaletter.Tools;
 using Godot;
-using Godot.Collections;
+using System.Collections.Generic;
 
 namespace Addons.ScenePaletter;
 
 [Tool]
 public partial class Plugin : EditorPlugin
 {
-    public object data;
+    public Dictionary<UIPosition, PageDock> docks;
     public ConfigFile configFile;
     public Config config;
-    public string state;
 
-    private Dictionary<string, string> statePaths;
-    private Dictionary<string, PackedScene> states;
-    private PageDock panel;
+    private Godot.Collections.Dictionary<string, string> scenePaths;
+    public Dictionary<string, PackedScene> Scenes;
+
+    private Godot.Collections.Dictionary<string, string> startingDockPages;
+    public Dictionary<UIPosition, string> StartingDocks;
+
+    private PopupPanel dialogWindow;
     private Button toolbarButton2D;
     private Button toolbarButton3D;
     private Action toolbarButtonAction;
@@ -24,13 +26,28 @@ public partial class Plugin : EditorPlugin
     {
         InitToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         InitToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
+        InitDocks();
+        InitConfig();
+        InitScenes();
+        InitStartingDocks();
+    }
+
+    public override void _Ready()
+    {
+        foreach (var item in StartingDocks)
+        {
+            StartDock(item.Key, item.Value);
+        }
     }
 
     public override void _ExitTree()
     {
         DisposeToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         DisposeToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
-        CloseWindow();
+        DisposeStartingDocks();
+        DisposeDocks();
+        DisposeConfig();
+        DisposeScenes();
     }
 
     /* ============== Structs ============== */
@@ -42,7 +59,6 @@ public partial class Plugin : EditorPlugin
         public string FileExtension;
         public int IdStart;
         public int IdEnd;
-        public string StartState;
         public int MinColums;
         public int MaxColums;
         public int Columns;
@@ -76,8 +92,8 @@ public partial class Plugin : EditorPlugin
         config.IdStart = (int)configFile.GetValue("file", "id_start");
         config.IdEnd = (int)configFile.GetValue("file", "id_end");
 
-        config.StartState = (string)configFile.GetValue("state", "start_state");
-        statePaths = (Dictionary<string, string>)configFile.GetValue("state", "states");
+        scenePaths = (Godot.Collections.Dictionary<string, string>)configFile.GetValue("page", "pages");
+        startingDockPages = (Godot.Collections.Dictionary<string, string>)configFile.GetValue("page", "start_docks");
 
         config.MaxColums = (int)configFile.GetValue("ui", "max_columns");
         config.MinColums = (int)configFile.GetValue("ui", "min_columns");
@@ -99,39 +115,63 @@ public partial class Plugin : EditorPlugin
         if (configFile == null) return;
         configFile.Dispose();
         configFile = null;
-        states = null;
     }
 
-    private void InitStates()
+    private void InitScenes()
     {
         if (configFile != null)
         {
-            states = new Dictionary<string, PackedScene>();
-            foreach (var item in statePaths)
+            Scenes = new Dictionary<string, PackedScene>();
+            foreach (var item in scenePaths)
             {
-                states[item.Key] = GD.Load<PackedScene>(item.Value);
+                Scenes[item.Key] = GD.Load<PackedScene>(item.Value);
             }
         }
     }
 
-    private void DisposeStates()
+    private void DisposeScenes()
     {
-        states = new Dictionary<string, PackedScene>();
+        Scenes = new Dictionary<string, PackedScene>();
     }
 
-    private void InitWindow()
+    private void InitStartingDocks()
     {
-        panel = new PageDock(this);
-        panel.Name = "Scene Palette";
-        AddControlToDock(DockSlot.RightUl, panel);
+        var startStates = (Godot.Collections.Dictionary)configFile.GetValue("page", "start_docks");
+        StartingDocks = new Dictionary<UIPosition, string>();
+        foreach (var item in startStates)
+        {
+            if (Enum.TryParse<UIPosition>(item.Key.ToString(), out var pos))
+            {
+                StartingDocks[pos] = (string)item.Value;
+            }
+        }
     }
 
-    private void DisposeWindow()
+    private void DisposeStartingDocks()
     {
-        if (!IsInstanceValid(panel)) return;
-        RemoveControlFromDocks(panel);
-        panel.QueueFree();
-        panel = null;
+        StartingDocks = new Dictionary<UIPosition, string>();
+    }
+
+    private void InitDocks()
+    {
+        docks = new Dictionary<UIPosition, PageDock>();
+
+        foreach (UIPosition pos in Enum.GetValues<UIPosition>())
+        {
+            docks[pos] = null;
+        }
+    }
+
+    private void DisposeDocks()
+    {
+        foreach (var item in docks)
+        {
+            if (item.Value != null && IsInstanceValid(item.Value))
+            {
+                CloseDock(item.Key);
+            }
+        }
+        docks = new Dictionary<UIPosition, PageDock>();
     }
 
     private void InitToolbarButton(ref Button button, CustomControlContainer container)
@@ -140,13 +180,13 @@ public partial class Plugin : EditorPlugin
 
         toolbarButtonAction = () =>
         {
-            if (!IsInstanceValid(panel))
+            if (docks[UIPosition.RightDockTopLeft] == null || !IsInstanceValid(docks[UIPosition.RightDockTopLeft]))
             {
-                StartWindow();
+                StartDock(UIPosition.RightDockTopLeft, "PalettePage");
             }
             else
             {
-                CloseWindow();
+                ChangeDockPosition(UIPosition.RightDockTopLeft, UIPosition.Dialog);
             }
         };
         button = new Button();
@@ -165,95 +205,261 @@ public partial class Plugin : EditorPlugin
         }
     }
 
-    /* ============== Window Helpers ============== */
-
-    private void StartWindow()
+    /* ============== Dock Helpers ============== */
+    public void ChangeDockPosition(UIPosition from, UIPosition to)
     {
-        if (IsInstanceValid(panel)) return;
-        InitConfig();
-        InitStates();
-        InitWindow();
-        SwitchState(config.StartState, null);
-    }
+        if (docks[from] == null || !IsInstanceValid(docks[from]))
+            return;
 
-    private void CloseWindow()
-    {
-        if (!IsInstanceValid(panel)) return;
-        DisposeStates();
-        DisposeWindow();
-        DisposeConfig();
-        ScenePreviewGenerator.ClearCache();
-    }
-
-    /* ============== Management ============== */
-    public void SwitchState(string stateName, object data)
-    {
-        if (panel == null) return;
-        if (states.ContainsKey(stateName))
+        // If destination has a dock, close it
+        if (docks[to] != null && IsInstanceValid(docks[to]))
         {
-            state = stateName;
-            this.data = data;
-            panel.SwitchToState(states[stateName]);
+            CloseDock(to);
+        }
+
+        PageDock dock = docks[from];
+        RemoveDockFromPosition(dock, from);
+        docks[from] = null;
+
+        docks[to] = dock;
+        SetDockToPosition(dock, to);
+    }
+
+    public void ReloadDock(UIPosition uiPosition, object data)
+    {
+        if (docks[uiPosition] == null || !IsInstanceValid(docks[uiPosition])) return;
+        docks[uiPosition].Reload(data);
+    }
+
+    public void StartDock(UIPosition uiPosition, string page, object data)
+    {
+        if (docks[uiPosition] != null && IsInstanceValid(docks[uiPosition])) return;
+        PageDock dock = new PageDock(this);
+        dock.Name = "Name";
+        docks[uiPosition] = dock;
+        SetDockToPosition(dock, uiPosition);
+        dock.SwitchPage(page, data);
+    }
+
+    public void StartDock(UIPosition uiPosition, string page)
+    {
+        StartDock(uiPosition, page, null);
+    }
+
+    public void CloseDock(UIPosition uiPosition)
+    {
+        if (docks[uiPosition] == null || !IsInstanceValid(docks[uiPosition])) return;
+        RemoveDockFromPosition(docks[uiPosition], uiPosition);
+        docks[uiPosition].QueueFree();
+        docks[uiPosition] = null;
+    }
+
+    public void SetDialogSize(Vector2I size)
+    {
+        if (docks[UIPosition.Dialog] == null || !IsInstanceValid(docks[UIPosition.Dialog]))
+            return;
+
+        if (docks[UIPosition.Dialog].GetParent() is PopupPanel popup)
+        {
+            popup.Size = size;
         }
     }
 
-    public void ReloadState(object data)
+    private void SetDockToPosition(Control dock, UIPosition uiPosition)
     {
-        if (panel == null) return;
-        if (states.ContainsKey(state))
+        switch (uiPosition)
         {
-            this.data = data;
-            panel.SwitchToState(states[state]);
+            case UIPosition.Dialog:
+                Control dialogContent = dock;
+
+                PopupPanel window = new PopupPanel();
+                window.Size = new Vector2I(400, 300);
+                window.Borderless = false;
+                window.Unresizable = false;
+
+                window.AddChild(dialogContent);
+
+                dialogContent.AnchorsPreset = (int)Control.LayoutPreset.FullRect;
+                dialogContent.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+
+                window.PopupHide += () =>
+                {
+                    CloseDock(UIPosition.Dialog);
+                };
+
+                EditorInterface.Singleton.GetBaseControl().AddChild(window);
+                window.PopupCentered();
+
+                dialogWindow = window;
+                break;
+            case UIPosition.BottomPanel:
+                AddControlToBottomPanel(dock, dock.Name);
+                break;
+            case UIPosition.Editor2DToolBar:
+                AddControlToContainer(CustomControlContainer.CanvasEditorMenu, dock);
+                break;
+            case UIPosition.Editor2DLeft:
+                AddControlToContainer(CustomControlContainer.CanvasEditorSideLeft, dock);
+                break;
+            case UIPosition.Editor2DRight:
+                AddControlToContainer(CustomControlContainer.CanvasEditorSideRight, dock);
+                break;
+            case UIPosition.Editor2DBottom:
+                AddControlToContainer(CustomControlContainer.CanvasEditorBottom, dock);
+                break;
+            case UIPosition.Editor3DToolBar:
+                AddControlToContainer(CustomControlContainer.SpatialEditorMenu, dock);
+                break;
+            case UIPosition.Editor3DLeft:
+                AddControlToContainer(CustomControlContainer.SpatialEditorSideLeft, dock);
+                break;
+            case UIPosition.Editor3DRight:
+                AddControlToContainer(CustomControlContainer.SpatialEditorSideRight, dock);
+                break;
+            case UIPosition.Editor3DBottom:
+                AddControlToContainer(CustomControlContainer.SpatialEditorBottom, dock);
+                break;
+            case UIPosition.InspectorBottom:
+                AddControlToContainer(CustomControlContainer.InspectorBottom, dock);
+                break;
+            case UIPosition.ProjectSettingLeft:
+                AddControlToContainer(CustomControlContainer.ProjectSettingTabLeft, dock);
+                break;
+            case UIPosition.ProjectSettingRight:
+                AddControlToContainer(CustomControlContainer.ProjectSettingTabRight, dock);
+                break;
+            case UIPosition.LeftDockTopLeft:
+                AddControlToDock(DockSlot.LeftUl, dock);
+                break;
+            case UIPosition.LeftDockTopRight:
+                AddControlToDock(DockSlot.LeftUr, dock);
+                break;
+            case UIPosition.LeftDockBottomLeft:
+                AddControlToDock(DockSlot.LeftBl, dock);
+                break;
+            case UIPosition.LeftDockBottomRight:
+                AddControlToDock(DockSlot.LeftBr, dock);
+                break;
+            case UIPosition.RightDockTopLeft:
+                AddControlToDock(DockSlot.RightUl, dock);
+                break;
+            case UIPosition.RightDockTopRight:
+                AddControlToDock(DockSlot.RightUr, dock);
+                break;
+            case UIPosition.RightDockBottomLeft:
+                AddControlToDock(DockSlot.RightBl, dock);
+                break;
+            case UIPosition.RightDockBottomRight:
+                AddControlToDock(DockSlot.RightBr, dock);
+                break;
+        }
+    }
+
+    private void RemoveDockFromPosition(Control dock, UIPosition uiPosition)
+    {
+        switch (uiPosition)
+        {
+            case UIPosition.Dialog:
+                if (IsInstanceValid(dialogWindow))
+                {
+                    dialogWindow.QueueFree();
+                    dialogWindow = null;
+                }
+                break;
+
+            case UIPosition.BottomPanel:
+                RemoveControlFromBottomPanel(dock);
+                break;
+
+            case UIPosition.Editor2DToolBar:
+                RemoveControlFromContainer(CustomControlContainer.CanvasEditorMenu, dock);
+                break;
+
+            case UIPosition.Editor2DLeft:
+                RemoveControlFromContainer(CustomControlContainer.CanvasEditorSideLeft, dock);
+                break;
+
+            case UIPosition.Editor2DRight:
+                RemoveControlFromContainer(CustomControlContainer.CanvasEditorSideRight, dock);
+                break;
+
+            case UIPosition.Editor2DBottom:
+                RemoveControlFromContainer(CustomControlContainer.CanvasEditorBottom, dock);
+                break;
+
+            case UIPosition.Editor3DToolBar:
+                RemoveControlFromContainer(CustomControlContainer.SpatialEditorMenu, dock);
+                break;
+
+            case UIPosition.Editor3DLeft:
+                RemoveControlFromContainer(CustomControlContainer.SpatialEditorSideLeft, dock);
+                break;
+
+            case UIPosition.Editor3DRight:
+                RemoveControlFromContainer(CustomControlContainer.SpatialEditorSideRight, dock);
+                break;
+
+            case UIPosition.Editor3DBottom:
+                RemoveControlFromContainer(CustomControlContainer.SpatialEditorBottom, dock);
+                break;
+
+            case UIPosition.InspectorBottom:
+                RemoveControlFromContainer(CustomControlContainer.InspectorBottom, dock);
+                break;
+
+            case UIPosition.ProjectSettingLeft:
+                RemoveControlFromContainer(CustomControlContainer.ProjectSettingTabLeft, dock);
+                break;
+
+            case UIPosition.ProjectSettingRight:
+                RemoveControlFromContainer(CustomControlContainer.ProjectSettingTabRight, dock);
+                break;
+            case UIPosition.LeftDockTopLeft:
+            case UIPosition.LeftDockTopRight:
+            case UIPosition.LeftDockBottomLeft:
+            case UIPosition.LeftDockBottomRight:
+            case UIPosition.RightDockTopLeft:
+            case UIPosition.RightDockTopRight:
+            case UIPosition.RightDockBottomLeft:
+            case UIPosition.RightDockBottomRight:
+                RemoveControlFromDocks(dock);
+                break;
         }
     }
 }
 
+public enum UIPosition
+{
+    // Special
+    Dialog,
+    BottomPanel,
 
+    // 3D Viewport
+    Editor3DToolBar,
+    Editor3DLeft,
+    Editor3DRight,
+    Editor3DBottom,
 
-// POSITIONS
-// ========== MAIN EDITOR ==========
-//     AddControlToContainer(CustomControlContainer.Toolbar, toolbarButton);
-//     // Main toolbar (top of editor, right side after Scene/Project/Debug/Editor/Help)
+    // 2D Viewport
+    Editor2DToolBar,
+    Editor2DLeft,
+    Editor2DRight,
+    Editor2DBottom,
 
-//     // ========== TOOL EDITOR ==========
-//     AddControlToContainer(CustomControlContainer.SpatialEditorMenu, toolbarButton);
-//     // 3D viewport top toolbar (where Select/Move/Rotate/Scale tools are)
+    // Inspector
+    InspectorBottom,
 
-//     AddControlToContainer(CustomControlContainer.CanvasEditorMenu, toolbarButton);
-//     // 2D viewport top toolbar (where Select/Move/Rotate/Scale tools are)
+    // Project Settings
+    ProjectSettingLeft,
+    ProjectSettingRight,
 
-
-//     AddControlToContainer(CustomControlContainer.SpatialEditorSideLeft, toolbarButton);
-//     // 3D viewport left side panel
-
-//     AddControlToContainer(CustomControlContainer.CanvasEditorSideLeft, toolbarButton);
-//     // 2D viewport left side panel
-
-
-//     AddControlToContainer(CustomControlContainer.SpatialEditorSideRight, toolbarButton);
-//     // 3D viewport right side panel
-
-//     AddControlToContainer(CustomControlContainer.CanvasEditorSideRight, toolbarButton);
-//     // 2D viewport right side panel
-
-
-//     AddControlToContainer(CustomControlContainer.SpatialEditorBottom, toolbarButton);
-//     // 3D viewport bottom panel
-
-//     AddControlToContainer(CustomControlContainer.CanvasEditorBottom, toolbarButton);
-//     // 2D viewport bottom panel
-
-
-//     // ========== PROPERTY INSPECTOR ==========
-//     AddControlToContainer(CustomControlContainer.InspectorBottom, toolbarButton);
-//     // Bottom of the Inspector panel
-
-//     AddControlToContainer(CustomControlContainer.PropertyEditorBottom, toolbarButton);
-//     // Bottom of the property editor section
-
-//     // ========== PROJECT SETTINGS ==========
-//     AddControlToContainer(CustomControlContainer.ProjectSettingTabLeft, toolbarButton);
-//     // Left side of project settings tabs
-
-//     AddControlToContainer(CustomControlContainer.ProjectSettingTabRight, toolbarButton);
-//     // Right side of project settings tabs
+    // Dock
+    LeftDockTopLeft,
+    LeftDockTopRight,
+    LeftDockBottomLeft,
+    LeftDockBottomRight,
+    RightDockTopLeft,
+    RightDockTopRight,
+    RightDockBottomLeft,
+    RightDockBottomRight
+}

@@ -1,0 +1,52 @@
+[gd_scene load_steps=3 format=3 uid="uid://bgiqhjxdjrsv7"]
+
+[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/PageBase.tscn" id="1_qq8p4"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qq8p4"]
+font_size = 30
+
+[node name="PageBase" instance=ExtResource("1_qq8p4")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" parent="Header" index="0"]
+text = "Are you sure?"
+label_settings = SubResource("LabelSettings_qq8p4")
+
+[node name="Label" type="Label" parent="Content" index="0"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "It will delete it permanently!"
+
+[node name="Footer" parent="." index="2"]
+grow_vertical = 0
+
+[node name="Button2" type="Button" parent="Footer" index="0"]
+modulate = Color(0.4182377, 0.6019757, 1, 1)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_right = 0.6
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = -1.0
+text = "Cancel"
+
+[node name="Button" type="Button" parent="Footer" index="1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = -1.0
+text = "Delete"

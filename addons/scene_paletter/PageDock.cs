@@ -4,31 +4,48 @@ namespace Addons.ScenePaletter;
 
 public partial class PageDock : VBoxContainer
 {
-    private Control page;
+    private Control node;
+    private UIPosition position;
     public Plugin plugin { get; private set; }
+
+    public string page { get; private set; }
+    public object data { get; private set; }
 
     public PageDock(Plugin plugin)
     {
         this.plugin = plugin;
     }
 
-    public void SwitchToState(PackedScene scene)
+    public void Clear()
     {
-        if (IsInstanceValid(page))
+        if (IsInstanceValid(node))
         {
-            RemoveChild(page);
-            page.QueueFree();
+            RemoveChild(node);
+            node.QueueFree();
         }
-        page = scene.Instantiate() as Control;
-        AddChild(page);
+    }
+
+    public void SwitchPage(string page, object pageData)
+    {
+        if (plugin == null || !plugin.Scenes.ContainsKey(page)) return;
+        Clear();
+        this.page = page;
+        data = pageData;
+        node = plugin.Scenes[page].Instantiate() as Control;
+        AddChild(node);
         CallDeferred(MethodName.UpdateName);
+    }
+
+    public void Reload(object pageData)
+    {
+        SwitchPage(page, pageData);
     }
 
     private void UpdateName()
     {
-        if (page != null)
+        if (node != null && IsInstanceValid(node))
         {
-            Name = page.Get("Title").AsString();
+            Name = node.Get("Title").AsString();
         }
     }
 }

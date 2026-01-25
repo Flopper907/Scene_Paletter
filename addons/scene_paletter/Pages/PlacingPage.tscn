@@ -29,6 +29,7 @@ grow_vertical = 2
 text = "Back"
 
 [node name="Button2" type="Button" parent="Content/Control" index="1"]
+modulate = Color(0.4182377, 0.6019757, 1, 1)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5

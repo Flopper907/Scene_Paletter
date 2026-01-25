@@ -1,11 +1,13 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 namespace Addons.ScenePaletter;
 
 public abstract partial class Page<T> : Control
 {
     protected T data;
+    protected PageDock dock;
     protected Plugin plugin;
 
     public string Title { get; protected set; }
@@ -26,22 +28,23 @@ public abstract partial class Page<T> : Control
             return;
         }
 
+        this.dock = dock;
         plugin = dock.plugin;
 
         // Safety check for plugin
-        if (plugin == null)
+        if (dock.plugin == null)
         {
             return;
         }
 
         // Handle data
-        if (plugin.data != null && plugin.data is T typedData)
+        if (dock.data != null && dock.data is T typedData)
         {
             data = typedData;
         }
         else
         {
-            data = default(T);
+            data = default;
         }
 
         Initialize();
