@@ -10,7 +10,7 @@ namespace Addons.ScenePaletter.Management;
 
 public class Dockmanager : IDisposable
 {
-    public Dictionary<UIPosition, PageDock> docks;
+    private Dictionary<UIPosition, PageDock> docks;
     private Plugin plugin;
     private PopupPanel dialogWindow;
 
@@ -36,6 +36,11 @@ public class Dockmanager : IDisposable
                 StartDock(pos, item.Value);
             }
         }
+    }
+
+    public bool IsDockInstanced(UIPosition position)
+    {
+        return docks[position] == null || !GodotObject.IsInstanceValid(docks[position]);
     }
 
 
@@ -67,7 +72,7 @@ public class Dockmanager : IDisposable
     {
         if (docks[uiPosition] != null && GodotObject.IsInstanceValid(docks[uiPosition])) return;
         PageDock dock = new PageDock(plugin);
-        dock.Name = "Name";
+        dock.Name = page;
         docks[uiPosition] = dock;
         SetDockToPosition(dock, uiPosition);
         dock.SwitchPage(page, data);

@@ -27,11 +27,12 @@ public partial class PageDock : VBoxContainer
 
     public void SwitchPage(string page, object pageData)
     {
-        if (plugin == null || !plugin.sceneLoader.Pages.ContainsKey(page)) return;
+        if (plugin == null || !plugin.sceneLoader.HasPage(page)) return;
         Clear();
         this.page = page;
         data = pageData;
-        node = plugin.sceneLoader.Pages[page].Instantiate() as Control;
+        node = plugin.sceneLoader.GetPage(page).Instantiate() as Control;
+
         AddChild(node);
         CallDeferred(MethodName.UpdateName);
     }
@@ -43,9 +44,11 @@ public partial class PageDock : VBoxContainer
 
     private void UpdateName()
     {
-        if (node != null && IsInstanceValid(node))
-        {
-            Name = node.Get("Title").AsString();
-        }
+        if (node == null || !IsInstanceValid(node)) return;
+
+        string title = "";
+        try { title = node.Get("Title").AsString(); } catch { }
+
+        Name = !string.IsNullOrEmpty(title) ? title : (page ?? "PageDock");
     }
 }

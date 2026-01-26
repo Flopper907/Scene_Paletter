@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cg7bjadc2wcpl"]
+
+[ext_resource type="Script" uid="uid://hr8edxhfuebl" path="res://addons/scene_paletter/Dialogs/StartToolDialog.cs" id="1_4vtu7"]
+
+[node name="StartToolDialog" type="Button"]
+text = "Scene Palettes"
+script = ExtResource("1_4vtu7")
+
+[connection signal="pressed" from="." to="." method="ToggleWindow"]

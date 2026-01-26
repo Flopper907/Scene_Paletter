@@ -22,7 +22,7 @@ public partial class EditingPage : Page<EditingPageData>
         titleLineEdit.Text = data.palette.Name;
         sceneListView.Columns = plugin.config.Columns;
 
-        PackedScene packedScene = plugin.sceneLoader.Widgets["EditingListItem"];
+        PackedScene packedScene = plugin.sceneLoader.GetWidget("EditingListItem");
         for (int i = 0; i < data.palette.Paths.Count; i++)
         {
             EditingListItem item = packedScene.Instantiate() as EditingListItem;

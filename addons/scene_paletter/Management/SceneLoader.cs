@@ -6,8 +6,8 @@ namespace Addons.ScenePaletter.Management;
 
 public class SceneLoader : IDisposable
 {
-    public Dictionary<string, PackedScene> Pages {get; private set;}
-    public Dictionary<string, PackedScene> Widgets {get; private set;}
+    private Dictionary<string, PackedScene> Pages;
+    private Dictionary<string, PackedScene> Widgets;
     private Plugin plugin;
 
     public void Init(Plugin plugin)
@@ -27,6 +27,34 @@ public class SceneLoader : IDisposable
                 Widgets[item.Key] = GD.Load<PackedScene>(item.Value);
             }
         }
+    }
+
+    public PackedScene GetPage(string page)
+    {
+        if (HasPage(page))
+        {
+            return Pages[page];
+        }
+        return null;
+    }
+
+    public bool HasPage(string page)
+    {
+        return Pages.ContainsKey(page);
+    }
+
+    public PackedScene GetWidget(string widget)
+    {
+        if (HasWidget(widget))
+        {
+            return Widgets[widget];
+        }
+        return null;
+    }
+
+    public bool HasWidget(string widget)
+    {
+        return Widgets.ContainsKey(widget);
     }
 
     public void Dispose()

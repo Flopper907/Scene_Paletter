@@ -26,7 +26,7 @@ public partial class PalettePage : Page<PalettePageData>
         data = new PalettePageData();
         data.palettes = Palette.LoadPalettes(plugin);
 
-        PackedScene packedScene = plugin.sceneLoader.Widgets["PaletteListItem"];
+        PackedScene packedScene = plugin.sceneLoader.GetWidget("PaletteListItem");
         for (int i = 0; i < data.palettes.Count; i++)
         {
             Palette palette = data.palettes[i];
