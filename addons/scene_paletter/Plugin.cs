@@ -1,7 +1,7 @@
 using System;
 using Godot;
-using System.Collections.Generic;
 using Addons.ScenePaletter.Management;
+using Addons.ScenePaletter.Core;
 
 namespace Addons.ScenePaletter;
 
@@ -10,8 +10,7 @@ public partial class Plugin : EditorPlugin
 {
     public ConfigLoader config;
     public Dockmanager dockManager;
-
-    public Dictionary<string, PackedScene> Scenes;
+    public SceneLoader sceneLoader;
 
     private Button toolbarButton2D;
     private Button toolbarButton3D;
@@ -25,12 +24,13 @@ public partial class Plugin : EditorPlugin
         config = new ConfigLoader();
         config.InitConfig("res://addons/scene_paletter/plugin.cfg");
 
-        dockManager = new Dockmanager(this);
-        InitScenes();
+        sceneLoader = new SceneLoader();
+        sceneLoader.Init(this);
     }
 
     public override void _Ready()
     {
+        dockManager = new Dockmanager(this);
         dockManager.InitDocks();
     }
 
@@ -38,29 +38,13 @@ public partial class Plugin : EditorPlugin
     {
         DisposeToolbarButton(ref toolbarButton2D, CustomControlContainer.CanvasEditorMenu);
         DisposeToolbarButton(ref toolbarButton3D, CustomControlContainer.SpatialEditorMenu);
+
         config.Dispose();
         dockManager.Dispose();
-        DisposeScenes();
+        sceneLoader.Dispose();
     }
 
     /* ============== Init/Dispose ============== */
-
-    private void InitScenes()
-    {
-        if (config != null)
-        {
-            Scenes = new Dictionary<string, PackedScene>();
-            foreach (var item in config.ScenePaths)
-            {
-                Scenes[item.Key] = GD.Load<PackedScene>(item.Value);
-            }
-        }
-    }
-
-    private void DisposeScenes()
-    {
-        Scenes = new Dictionary<string, PackedScene>();
-    }
 
     private void InitToolbarButton(ref Button button, CustomControlContainer container)
     {
@@ -92,40 +76,4 @@ public partial class Plugin : EditorPlugin
             button.QueueFree();
         }
     }
-}
-
-public enum UIPosition
-{
-    // Special
-    Dialog,
-    BottomPanel,
-
-    // 3D Viewport
-    Editor3DToolBar,
-    Editor3DLeft,
-    Editor3DRight,
-    Editor3DBottom,
-
-    // 2D Viewport
-    Editor2DToolBar,
-    Editor2DLeft,
-    Editor2DRight,
-    Editor2DBottom,
-
-    // Inspector
-    InspectorBottom,
-
-    // Project Settings
-    ProjectSettingLeft,
-    ProjectSettingRight,
-
-    // Dock
-    LeftDockTopLeft,
-    LeftDockTopRight,
-    LeftDockBottomLeft,
-    LeftDockBottomRight,
-    RightDockTopLeft,
-    RightDockTopRight,
-    RightDockBottomLeft,
-    RightDockBottomRight
 }

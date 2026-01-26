@@ -1,6 +1,9 @@
+using Godot;
+
 using System;
 using System.Collections.Generic;
-using Godot;
+
+using Addons.ScenePaletter.Core;
 using static Godot.EditorPlugin;
 
 namespace Addons.ScenePaletter.Management;
@@ -41,7 +44,6 @@ public class Dockmanager : IDisposable
         if (docks[from] == null || !GodotObject.IsInstanceValid(docks[from]))
             return;
 
-        // If destination has a dock, close it
         if (docks[to] != null && GodotObject.IsInstanceValid(docks[to]))
         {
             CloseDock(to);

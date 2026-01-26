@@ -1,8 +1,8 @@
-using System;
-using Addons.ScenePaletter.Tools;
-using Addons.ScenePaletter.Widgets;
 using Godot;
 using Godot.Collections;
+using Addons.ScenePaletter.Tools;
+using Addons.ScenePaletter.Widgets;
+using Addons.ScenePaletter.Core;
 
 namespace Addons.ScenePaletter.Pages;
 
@@ -22,7 +22,7 @@ public partial class PlacingPage : Page<PlacingPageData>
         titleLabel.Text = data.palette.Name;
         sceneListView.Columns = plugin.config.Columns;
 
-        PackedScene packedScene = GD.Load<PackedScene>(plugin.config.WidgetPath + "PlacingListItem.tscn");
+        PackedScene packedScene = plugin.sceneLoader.Widgets["PlacingListItem"];
         for (int i = 0; i < data.palette.Paths.Count; i++)
         {
             PlacingListItem item = packedScene.Instantiate() as PlacingListItem;

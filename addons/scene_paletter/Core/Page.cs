@@ -1,8 +1,6 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 
-namespace Addons.ScenePaletter;
+namespace Addons.ScenePaletter.Core;
 
 public abstract partial class Page<T> : Control
 {

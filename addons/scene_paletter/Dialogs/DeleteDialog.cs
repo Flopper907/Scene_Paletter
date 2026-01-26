@@ -1,6 +1,9 @@
 using Godot;
 using System;
 
+
+using Addons.ScenePaletter.Core;
+
 namespace Addons.ScenePaletter.Dialogs;
 
 public partial class DeleteDialog : Page<DeleteDialogData>

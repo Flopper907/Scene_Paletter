@@ -9,7 +9,6 @@ public class ConfigLoader : IDisposable
     private ConfigFile configFile;
 
     // file section
-    public string WidgetPath { get; private set; }
     public string PalettePath { get; private set; }
     public string FileExtension { get; private set; }
     public int IdStart { get; private set; }
@@ -17,6 +16,7 @@ public class ConfigLoader : IDisposable
 
     // page section
     public Dictionary<string, string> ScenePaths { get; private set; }
+    public Dictionary<string, string> WidgetPaths { get; private set; }
     public Dictionary<string, string> InitialDocks { get; private set; }
 
     // ui section
@@ -34,7 +34,6 @@ public class ConfigLoader : IDisposable
         configFile.Load(path);
 
         // file section
-        WidgetPath = GetString("file", "widget_path");
         PalettePath = GetString("file", "palette_path");
         FileExtension = GetString("file", "file_extension");
         IdStart = GetInt("file", "id_start");
@@ -42,6 +41,7 @@ public class ConfigLoader : IDisposable
 
         // page section
         ScenePaths = GetDictionary("page", "pages", new Dictionary<string, string>());
+        WidgetPaths = GetDictionary("page", "widgets", new Dictionary<string, string>());
         InitialDocks = GetDictionary("page", "initial_docks", new Dictionary<string, string>());
 
         // ui section

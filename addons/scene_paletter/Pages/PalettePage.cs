@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Addons.ScenePaletter.Dialogs;
-using Addons.ScenePaletter.Tools;
+using Addons.ScenePaletter.Core;
 using Addons.ScenePaletter.Widgets;
 using Godot;
 
@@ -27,7 +26,7 @@ public partial class PalettePage : Page<PalettePageData>
         data = new PalettePageData();
         data.palettes = Palette.LoadPalettes(plugin);
 
-        PackedScene packedScene = GD.Load<PackedScene>(plugin.config.WidgetPath + "PaletteListItem.tscn");
+        PackedScene packedScene = plugin.sceneLoader.Widgets["PaletteListItem"];
         for (int i = 0; i < data.palettes.Count; i++)
         {
             Palette palette = data.palettes[i];

@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Addons.ScenePaletter;
+namespace Addons.ScenePaletter.Core;
 
 public partial class PageDock : VBoxContainer
 {
@@ -27,11 +27,11 @@ public partial class PageDock : VBoxContainer
 
     public void SwitchPage(string page, object pageData)
     {
-        if (plugin == null || !plugin.Scenes.ContainsKey(page)) return;
+        if (plugin == null || !plugin.sceneLoader.Pages.ContainsKey(page)) return;
         Clear();
         this.page = page;
         data = pageData;
-        node = plugin.Scenes[page].Instantiate() as Control;
+        node = plugin.sceneLoader.Pages[page].Instantiate() as Control;
         AddChild(node);
         CallDeferred(MethodName.UpdateName);
     }
