@@ -20,7 +20,7 @@ public class Dockmanager : IDisposable
     }
 
 
-    public void InitDocks()
+    public void Init()
     {
         docks = new Dictionary<UIPosition, PageDock>();
 

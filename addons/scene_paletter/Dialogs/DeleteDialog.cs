@@ -1,22 +1,9 @@
 using Godot;
-using System;
-
-
 using Addons.ScenePaletter.Core;
+using System;
+using System.ComponentModel;
 
 namespace Addons.ScenePaletter.Dialogs;
-
-public partial class DeleteDialog : Page<DeleteDialogData>
-{
-    [Export] public Button cancelButton;
-    [Export] public Button deleteButton;
-
-    public override void Initialize()
-    {
-        cancelButton.Pressed += data.cancelAction;
-        deleteButton.Pressed += data.deleteAction;
-    }
-}
 
 public struct DeleteDialogData
 {
@@ -27,5 +14,18 @@ public struct DeleteDialogData
     {
         this.cancelAction = cancelAction;
         this.deleteAction = deleteAction;
+    }
+}
+
+[Tool]
+public partial class DeleteDialog : Page<DeleteDialogData>
+{
+    [Export] public Button cancelButton;
+    [Export] public Button deleteButton;
+
+    public override void Initialize()
+    {
+        cancelButton.Pressed += data.cancelAction;
+        deleteButton.Pressed += data.deleteAction;
     }
 }

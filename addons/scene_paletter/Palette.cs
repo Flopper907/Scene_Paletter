@@ -72,6 +72,7 @@ public class Palette
             UID = this.UID
         };
     }
+
     public bool EqualsID(Palette other)
     {
         // Compare UID if both have it set
@@ -82,6 +83,7 @@ public class Palette
 
         return false;
     }
+
     public override bool Equals(object obj)
     {
         if (obj == null || GetType() != obj.GetType())

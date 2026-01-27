@@ -28,7 +28,7 @@ public class ConfigLoader : IDisposable
     public bool PreviewTransparent2D { get; private set; }
     public bool PreviewTransparent3D { get; private set; }
 
-    public void InitConfig(string path)
+    public void Init(string path)
     {
         configFile = new ConfigFile();
         configFile.Load(path);

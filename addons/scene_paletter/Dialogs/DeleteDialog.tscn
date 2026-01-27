@@ -1,11 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://bgiqhjxdjrsv7"]
+[gd_scene load_steps=4 format=3 uid="uid://bgiqhjxdjrsv7"]
 
 [ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/PageBase.tscn" id="1_qq8p4"]
+[ext_resource type="Script" uid="uid://c80gkftifl0to" path="res://addons/scene_paletter/Dialogs/DeleteDialog.cs" id="2_a600t"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_qq8p4"]
 font_size = 30
 
-[node name="PageBase" instance=ExtResource("1_qq8p4")]
+[node name="PageBase" node_paths=PackedStringArray("cancelButton", "deleteButton") instance=ExtResource("1_qq8p4")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -13,6 +14,9 @@ offset_right = 0.0
 offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("2_a600t")
+cancelButton = NodePath("Footer/Button2")
+deleteButton = NodePath("Footer/Button")
 
 [node name="Label" parent="Header" index="0"]
 text = "Are you sure?"
