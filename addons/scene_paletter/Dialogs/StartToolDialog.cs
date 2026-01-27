@@ -12,7 +12,7 @@ public partial class StartToolDialog : Page<object>
 
     public void ToggleWindow()
     {
-        if (plugin.dockManager.IsDockInstanced(UIPosition.RightDockTopLeft))
+        if (!plugin.dockManager.IsDockInstanced(UIPosition.RightDockTopLeft))
         {
             plugin.dockManager.StartDock(UIPosition.RightDockTopLeft, "PalettePage");
         }

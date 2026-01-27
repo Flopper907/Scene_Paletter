@@ -15,35 +15,72 @@ public partial class EditingPage : Page<EditingPageData>
 
     public override void Initialize()
     {
-        if (data.palette == null) dock.SwitchPage("PalettePage", null);
+        if (data.palette == null)
+        {
+            ExceptionHandler.ThrowMissingPaletteException("null", nameof(Initialize));
+            dock.SwitchPage("PalettePage", null);
+            return;
+        }
 
         Title = "Scene Paletter" + (data.old.Equals(data.palette) ? "" : "*");
 
         titleLineEdit.Text = data.palette.Name;
         sceneListView.Columns = plugin.config.Columns;
 
-        PackedScene packedScene = plugin.sceneLoader.GetWidget("EditingListItem");
+        PackedScene packedScene = plugin.sceneLoader?.GetWidget("EditingListItem");
+        if (packedScene == null)
+        {
+            ExceptionHandler.ThrowMissingWidgetException("EditingListItem", $"{this.GetType()} {nameof(Initialize)}");
+            return;
+        }
+
         for (int i = 0; i < data.palette.Paths.Count; i++)
         {
-            EditingListItem item = packedScene.Instantiate() as EditingListItem;
-            sceneListView.AddChild(item);
+            try
+            {
+                int index = i;
+                string uid = data.palette.Paths[index];
 
-            int index = i;
-            string uid = data.palette.Paths[index];
+                PackedScene scene = GD.Load<PackedScene>(uid);
+                if (scene == null)
+                {
+                    ExceptionHandler.ThrowResourceLoadException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                    continue;
+                }
 
-            PackedScene scene = GD.Load<PackedScene>(uid);
-            Node node = scene.Instantiate();
-            string name = node.Name;
-            node.Free();
+                Node node = scene.Instantiate();
+                if (node == null)
+                {
+                    ExceptionHandler.ThrowSceneInstantiationException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                    continue;
+                }
 
-            item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
-            ScenePreviewGenerator.GeneratePreview(
-                scene,
-                plugin.config.PreviewResolution,
-                plugin.config.PreviewMargin,
-                node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
-                item.SetTexture
-            );
+                string name = node.Name;
+                node.Free();
+
+                EditingListItem item = packedScene.Instantiate() as EditingListItem;
+                if (item == null)
+                {
+                    ExceptionHandler.ThrowSceneInstantiationException("EditingListItem", $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                    continue;
+                }
+
+                sceneListView.AddChild(item);
+
+                item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
+                ScenePreviewGenerator.GeneratePreview(
+                    scene,
+                    plugin.config.PreviewResolution,
+                    plugin.config.PreviewMargin,
+                    node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
+                    item.SetTexture
+                );
+            }
+            catch (System.Exception ex)
+            {
+                ExceptionHandler.ThrowUnexpectedException(ex, $"{GetType().Name} {nameof(Initialize)} - Processing palette item at index {i}");
+                continue; // Skip this item and continue with the next
+            }
         }
 
         CallDeferred(MethodName.ApplyScrollPosition);

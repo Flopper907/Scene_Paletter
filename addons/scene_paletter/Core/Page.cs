@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Addons.ScenePaletter.Core;
@@ -17,12 +18,16 @@ public abstract partial class Page<T> : Control
     {
         // Only run in editor context
         if (!Engine.IsEditorHint())
+        {
             return;
+        }
 
         // Only initialize if we're actually part of the plugin dock
         var parent = GetParent();
         if (parent is not PageDock dock)
         {
+            // Exception is correct, but throws everytime a Pagebase scene is opened 
+            // ExceptionHandler.ThrowMissingDockParentException(GetPath());
             return;
         }
 
@@ -32,6 +37,7 @@ public abstract partial class Page<T> : Control
         // Safety check for plugin
         if (dock.plugin == null)
         {
+            ExceptionHandler.ThrowMissingPluginException($"{GetType().Name} {nameof(_Ready)}");
             return;
         }
 
@@ -40,31 +46,70 @@ public abstract partial class Page<T> : Control
         {
             data = typedData;
         }
+        else if (dock.data != null) // Data exists but wrong type
+        {
+            ExceptionHandler.ThrowInvalidPageDataException(
+                GetType().Name,
+                typeof(T).Name,
+                dock.data.GetType().Name
+            );
+            data = default;
+        }
         else
         {
             data = default;
         }
 
-        Initialize();
+        try
+        {
+            Initialize();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandler.ThrowUnexpectedException(ex, $"Page.Initialize - {GetType().Name} {nameof(_Ready)}");
+        }
     }
 
 
     protected void SetupFileDialog(string title, string filter, string description, EditorFileDialog.FilesSelectedEventHandler OnSceneFilesSelected)
     {
-        EditorFileDialog fileDialog = new EditorFileDialog();
-        fileDialog.FileMode = EditorFileDialog.FileModeEnum.OpenFiles; // Allow multiple file selection
-        fileDialog.Access = EditorFileDialog.AccessEnum.Resources;
-        fileDialog.Title = "Select Scene Files";
+        if (OnSceneFilesSelected == null)
+        {
+            ExceptionHandler.ThrowNullReferenceException(
+                nameof(OnSceneFilesSelected),
+                $"{GetType().Name} {nameof(SetupFileDialog)}"
+            );
+            return;
+        }
 
-        // Filter for .tscn files (Godot scene files)
-        fileDialog.AddFilter("*.tscn", "Godot Scene Files");
+        var parent = GetParent();
+        if (parent == null)
+        {
+            ExceptionHandler.ThrowMissingNodeException(
+                "Parent",
+                $"{GetType().Name} {nameof(SetupFileDialog)}"
+            );
+            return;
+        }
 
-        // Connect the file(s) selected signal
-        fileDialog.FilesSelected += OnSceneFilesSelected;
+        try
+        {
+            EditorFileDialog fileDialog = new EditorFileDialog();
+            fileDialog.FileMode = EditorFileDialog.FileModeEnum.OpenFiles;
+            fileDialog.Access = EditorFileDialog.AccessEnum.Resources;
+            fileDialog.Title = title; // Use the parameter!
 
-        // Add the dialog to the scene tree
-        GetParent().AddChild(fileDialog);
+            // Use the parameters properly
+            fileDialog.AddFilter(filter, description);
 
-        fileDialog.PopupCentered(new Vector2I(800, 600));
+            fileDialog.FilesSelected += OnSceneFilesSelected;
+
+            parent.AddChild(fileDialog);
+            fileDialog.PopupCentered(new Vector2I(800, 600));
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandler.ThrowUnexpectedException(ex, $"{GetType().Name} {nameof(SetupFileDialog)}");
+        }
     }
 }

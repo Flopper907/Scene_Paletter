@@ -3,6 +3,7 @@ using Godot.Collections;
 using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
 using Addons.ScenePaletter.Core;
+using System;
 
 namespace Addons.ScenePaletter.Pages;
 
@@ -15,35 +16,72 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public override void Initialize()
     {
-        if (data.palette == null) dock.SwitchPage("PalettePage", null);
+        if (data.palette == null)
+        {
+            ExceptionHandler.ThrowMissingPaletteException("null", $"{GetType().Name} {nameof(Initialize)}");
+            dock.SwitchPage("PalettePage", null);
+            return;
+        }
 
         Title = "Scene Paletter";
 
         titleLabel.Text = data.palette.Name;
         sceneListView.Columns = plugin.config.Columns;
 
-        PackedScene packedScene = plugin.sceneLoader.GetWidget("PlacingListItem");
+        PackedScene packedScene = plugin.sceneLoader?.GetWidget("PlacingListItem");
+        if (packedScene == null)
+        {
+            ExceptionHandler.ThrowMissingWidgetException("PlacingListItem", $"{GetType().Name} {nameof(Initialize)}");
+            return;
+        }
+
         for (int i = 0; i < data.palette.Paths.Count; i++)
         {
-            PlacingListItem item = packedScene.Instantiate() as PlacingListItem;
-            sceneListView.AddChild(item);
+            try
+            {
+                int index = i;
+                string uid = data.palette.Paths[index];
 
-            int index = i;
-            string uid = data.palette.Paths[index];
+                PackedScene scene = GD.Load<PackedScene>(uid);
+                if (scene == null)
+                {
+                    ExceptionHandler.ThrowResourceLoadException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                    continue;
+                }
 
-            PackedScene scene = GD.Load<PackedScene>(uid);
-            Node node = scene.Instantiate();
-            string name = node.Name;
-            node.Free();
+                Node node = scene.Instantiate();
+                if (node == null)
+                {
+                    ExceptionHandler.ThrowSceneInstantiationException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                    continue;
+                }
 
-            item.SetData(name, index == data.currentElement, () => Select(index));
-            ScenePreviewGenerator.GeneratePreview(
-                scene,
-                plugin.config.PreviewResolution,
-                plugin.config.PreviewMargin,
-                node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
-                item.SetTexture
-            );
+                string name = node.Name;
+                node.Free();
+
+                PlacingListItem item = packedScene.Instantiate() as PlacingListItem;
+                if (item == null)
+                {
+                    ExceptionHandler.ThrowSceneInstantiationException("PlacingListItem", $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                    continue;
+                }
+
+                sceneListView.AddChild(item);
+
+                item.SetData(name, index == data.currentElement, () => Select(index));
+                ScenePreviewGenerator.GeneratePreview(
+                    scene,
+                    plugin.config.PreviewResolution,
+                    plugin.config.PreviewMargin,
+                    node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
+                    item.SetTexture
+                );
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.ThrowUnexpectedException(ex, $"{GetType().Name} {nameof(Initialize)} - Processing palette item at index {i}");
+                continue; // Skip this item and continue with the next
+            }
         }
 
         CallDeferred(MethodName.ApplyScrollPosition);
@@ -77,6 +115,12 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Select(int index)
     {
+        if (index < 0 || index >= data.palette.Paths.Count)
+        {
+            ExceptionHandler.ThrowInvalidPalettePositionException(index, $"{GetType().Name} {nameof(Select)}");
+            return;
+        }
+
         data.previousElement = data.currentElement;
         data.currentElement = index;
         ReloadWithScrollSave();
@@ -84,6 +128,12 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Edit()
     {
+        if (data.palette == null)
+        {
+            ExceptionHandler.ThrowMissingPaletteException("null", $"{GetType().Name} {nameof(Edit)}");
+            return;
+        }
+
         dock.SwitchPage("EditingPage", new EditingPageData(data.palette));
     }
 
@@ -106,106 +156,202 @@ public partial class PlacingPage : Page<PlacingPageData>
 
     public void Place()
     {
-        // Check valid selection
-        if (data.currentElement < 0 || data.currentElement >= data.palette.Paths.Count)
-            return;
-
-        PackedScene packedScene = GD.Load<PackedScene>(data.palette.Paths[data.currentElement]);
-        if (packedScene == null)
-            return;
-
-        Node parent = GetParentNodeFromEditor();
-        Node instance = packedScene.Instantiate();
-
-        bool lastValid = data.lastSpawned != null && IsInstanceValid(data.lastSpawned) && data.lastSpawned.IsInsideTree();
-        if (!lastValid) data.lastSpawned = null;
-        bool prevValid = data.previousSpawned != null && IsInstanceValid(data.previousSpawned) && data.previousSpawned.IsInsideTree();
-        if (!prevValid) data.previousSpawned = null;
-
-        // --- NODE2D BRANCH ---
-        if (parent is Node2D parent2D && instance is Node2D instance2D)
+        try
         {
-            // Handle positioning
-            Vector2 spawnPos;
-            if (data.lastSpawned == null)
+            // Check valid selection
+            if (data.currentElement < 0 || data.currentElement >= data.palette.Paths.Count)
             {
-                spawnPos = parent2D.GlobalPosition; // First spawn or reset
+                ExceptionHandler.ThrowInvalidPalettePositionException(data.currentElement, $"{GetType().Name} {nameof(Place)}");
+                return;
             }
-            else if (data.previousSpawned == null)
+
+            string scenePath = data.palette.Paths[data.currentElement];
+            PackedScene packedScene = GD.Load<PackedScene>(scenePath);
+            if (packedScene == null)
             {
-                spawnPos = ((Node2D)data.lastSpawned).GlobalPosition; // Only last exists
+                ExceptionHandler.ThrowResourceLoadException(scenePath, $"{GetType().Name} {nameof(Place)}");
+                return;
+            }
+
+            Node parent = GetParentNodeFromEditor();
+            if (parent == null)
+            {
+                ExceptionHandler.ThrowMissingNodeException("Editor parent node", $"{GetType().Name} {nameof(Place)}");
+                return;
+            }
+
+            Node instance = packedScene.Instantiate();
+            if (instance == null)
+            {
+                ExceptionHandler.ThrowSceneInstantiationException(scenePath, $"{GetType().Name} {nameof(Place)}");
+                return;
+            }
+
+            bool lastValid = data.lastSpawned != null && IsInstanceValid(data.lastSpawned) && data.lastSpawned.IsInsideTree();
+            if (!lastValid) data.lastSpawned = null;
+            bool prevValid = data.previousSpawned != null && IsInstanceValid(data.previousSpawned) && data.previousSpawned.IsInsideTree();
+            if (!prevValid) data.previousSpawned = null;
+
+            // --- NODE2D BRANCH ---
+            if (parent is Node2D parent2D && instance is Node2D instance2D)
+            {
+                // Handle positioning
+                Vector2 spawnPos;
+                if (data.lastSpawned == null)
+                {
+                    spawnPos = parent2D.GlobalPosition; // First spawn or reset
+                }
+                else if (data.previousSpawned == null)
+                {
+                    spawnPos = ((Node2D)data.lastSpawned).GlobalPosition; // Only last exists
+                }
+                else
+                {
+                    spawnPos = 2f * ((Node2D)data.lastSpawned).GlobalPosition - ((Node2D)data.previousSpawned).GlobalPosition;
+                }
+
+                // Add to tree before positioning
+                parent2D.AddChild(instance);
+
+                var tree = parent.GetTree();
+                if (tree == null)
+                {
+                    ExceptionHandler.ThrowMissingNodeException("SceneTree", $"{GetType().Name} {nameof(Place)}");
+                    instance.QueueFree();
+                    return;
+                }
+
+                var editedSceneRoot = tree.EditedSceneRoot;
+                if (editedSceneRoot == null)
+                {
+                    ExceptionHandler.ThrowMissingNodeException("EditedSceneRoot", $"{GetType().Name} {nameof(Place)}");
+                    instance.QueueFree();
+                    return;
+                }
+
+                instance.Owner = editedSceneRoot;
+
+                // Apply calculated position
+                instance2D.GlobalPosition = spawnPos;
+
+                // Update spawn tracking
+                data.previousSpawned = data.lastSpawned;
+                data.lastSpawned = instance;
+            }
+            // --- NODE3D BRANCH ---
+            else if (parent is Node3D parent3D && instance is Node3D instance3D)
+            {
+                // Handle positioning
+                Vector3 spawnPos;
+                if (data.lastSpawned == null)
+                {
+                    spawnPos = parent3D.GlobalPosition; // First spawn or reset
+                }
+                else if (data.previousSpawned == null)
+                {
+                    spawnPos = ((Node3D)data.lastSpawned).GlobalPosition; // Only last exists
+                }
+                else
+                {
+                    spawnPos = 2f * ((Node3D)data.lastSpawned).GlobalPosition - ((Node3D)data.previousSpawned).GlobalPosition;
+                }
+
+                // Add to tree before positioning
+                parent3D.AddChild(instance);
+
+                var tree = parent.GetTree();
+                if (tree == null)
+                {
+                    ExceptionHandler.ThrowMissingNodeException("SceneTree", $"{GetType().Name} {nameof(Place)}");
+                    instance.QueueFree();
+                    return;
+                }
+
+                var editedSceneRoot = tree.EditedSceneRoot;
+                if (editedSceneRoot == null)
+                {
+                    ExceptionHandler.ThrowMissingNodeException("EditedSceneRoot", $"{GetType().Name} {nameof(Place)}");
+                    instance.QueueFree();
+                    return;
+                }
+
+                instance.Owner = editedSceneRoot;
+
+                // Apply calculated position
+                instance3D.GlobalPosition = spawnPos;
+
+                // Update spawn tracking
+                data.previousSpawned = data.lastSpawned;
+                data.lastSpawned = instance;
+            }
+            // --- INVALID PARENT / INSTANCE TYPE ---
+            else
+            {
+                ExceptionHandler.ThrowInvalidNodeTypeException(
+                    instance.GetPath(),
+                    $"{parent.GetType().Name} (2D/3D)",
+                    $"Parent: {parent.GetType().Name}, Instance: {instance.GetType().Name}"
+                );
+                instance.Free();
+                return;
+            }
+
+            // Mark scene as unsaved in the editor
+            if (EditorInterface.Singleton != null)
+            {
+                EditorInterface.Singleton.MarkSceneAsUnsaved();
             }
             else
             {
-                spawnPos = 2f * ((Node2D)data.lastSpawned).GlobalPosition - ((Node2D)data.previousSpawned).GlobalPosition;
+                ExceptionHandler.LogWarning("EditorInterface.Singleton is null", $"{GetType().Name} {nameof(Place)}");
             }
-
-            // Add to tree before positioning
-            parent2D.AddChild(instance);
-            instance.Owner = parent.GetTree().EditedSceneRoot;
-
-            // Apply calculated position
-            instance2D.GlobalPosition = spawnPos;
-
-            // Update spawn tracking
-            data.previousSpawned = data.lastSpawned;
-            data.lastSpawned = instance;
         }
-        // --- NODE3D BRANCH ---
-        else if (parent is Node3D parent3D && instance is Node3D instance3D)
+        catch (Exception ex)
         {
-            // Handle positioning
-            Vector3 spawnPos;
-            if (data.lastSpawned == null)
-            {
-                spawnPos = parent3D.GlobalPosition; // First spawn or reset
-            }
-            else if (data.previousSpawned == null)
-            {
-                spawnPos = ((Node3D)data.lastSpawned).GlobalPosition; // Only last exists
-            }
-            else
-            {
-                spawnPos = 2f * ((Node3D)data.lastSpawned).GlobalPosition - ((Node3D)data.previousSpawned).GlobalPosition;
-            }
-
-            // Add to tree before positioning
-            parent3D.AddChild(instance);
-            instance.Owner = parent.GetTree().EditedSceneRoot;
-
-            // Apply calculated position
-            instance3D.GlobalPosition = spawnPos;
-
-            // Update spawn tracking
-            data.previousSpawned = data.lastSpawned;
-            data.lastSpawned = instance;
+            ExceptionHandler.ThrowUnexpectedException(ex, $"{GetType().Name} {nameof(Place)}");
         }
-        // --- INVALID PARENT / INSTANCE TYPE ---
-        else
-        {
-            GD.PrintErr("Parent and instance type mismatch or unsupported node type");
-            instance.Free();
-            return;
-        }
-
-        // Mark scene as unsaved in the editor
-        EditorInterface.Singleton.MarkSceneAsUnsaved();
     }
 
     private Node GetParentNodeFromEditor()
     {
-        EditorInterface editorInterface = EditorInterface.Singleton;
-
-        EditorSelection selection = editorInterface.GetSelection();
-        Array<Node> selectedNodes = selection.GetSelectedNodes();
-
-        Node editedSceneRoot = editorInterface.GetEditedSceneRoot();
-        Node parentNode = editedSceneRoot;
-        if (selectedNodes.Count > 0)
+        try
         {
-            parentNode = selectedNodes[0]; // Use the first selected node as parent
+            EditorInterface editorInterface = EditorInterface.Singleton;
+            if (editorInterface == null)
+            {
+                ExceptionHandler.ThrowNullReferenceException("EditorInterface.Singleton", $"{GetType().Name} {nameof(GetParentNodeFromEditor)}");
+                return null;
+            }
+
+            EditorSelection selection = editorInterface.GetSelection();
+            if (selection == null)
+            {
+                ExceptionHandler.ThrowNullReferenceException("EditorSelection", $"{GetType().Name} {nameof(GetParentNodeFromEditor)}");
+                return null;
+            }
+
+            Array<Node> selectedNodes = selection.GetSelectedNodes();
+
+            Node editedSceneRoot = editorInterface.GetEditedSceneRoot();
+            if (editedSceneRoot == null)
+            {
+                ExceptionHandler.ThrowMissingNodeException("EditedSceneRoot", $"{GetType().Name} {nameof(GetParentNodeFromEditor)}");
+                return null;
+            }
+
+            Node parentNode = editedSceneRoot;
+            if (selectedNodes != null && selectedNodes.Count > 0)
+            {
+                parentNode = selectedNodes[0]; // Use the first selected node as parent
+            }
+
+            return parentNode;
         }
-        return parentNode;
+        catch (Exception ex)
+        {
+            ExceptionHandler.ThrowUnexpectedException(ex, $"{GetType().Name} {nameof(GetParentNodeFromEditor)}");
+            return null;
+        }
     }
 }
 

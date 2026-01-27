@@ -23,10 +23,25 @@ public class Dockmanager : IDisposable
     public void Init()
     {
         docks = new Dictionary<UIPosition, PageDock>();
-
         foreach (UIPosition pos in Enum.GetValues<UIPosition>())
         {
             docks[pos] = null;
+        }
+
+        if (plugin == null)
+        {
+            ExceptionHandler.ThrowMissingPluginException("DockManager.Init()");
+            return;
+        }
+        if (plugin.config == null)
+        {
+            ExceptionHandler.ThrowMissingConfigException("DockManager.Init()");
+            return;
+        }
+        if (plugin.config.InitialDocks == null)
+        {
+            ExceptionHandler.ThrowNullReferenceException("config.InitialDocks", "DockManager.Init()");
+            return;
         }
 
         foreach (var item in plugin.config.InitialDocks)
@@ -40,21 +55,33 @@ public class Dockmanager : IDisposable
 
     public bool IsDockInstanced(UIPosition position)
     {
-        return docks[position] == null || !GodotObject.IsInstanceValid(docks[position]);
+        return docks != null && docks.TryGetValue(position, out var d) && GodotObject.IsInstanceValid(d);
+    }
+
+    private void EnsureInitialized(string caller)
+    {
+        if (docks == null)
+            ExceptionHandler.ThrowNullReferenceException("DockManager.docks", caller);
+    }
+
+    private PageDock GetDockOrThrow(UIPosition position, string caller)
+    {
+        if (!IsDockInstanced(position))
+            ExceptionHandler.ThrowDockNotFoundException(position, caller);
+
+        return docks[position];
     }
 
 
     public void ChangeDockPosition(UIPosition from, UIPosition to)
     {
-        if (docks[from] == null || !GodotObject.IsInstanceValid(docks[from]))
-            return;
+        EnsureInitialized(nameof(ChangeDockPosition));
 
-        if (docks[to] != null && GodotObject.IsInstanceValid(docks[to]))
-        {
+        var dock = GetDockOrThrow(from, nameof(ChangeDockPosition));
+
+        if (IsDockInstanced(to))
             CloseDock(to);
-        }
 
-        PageDock dock = docks[from];
         RemoveDockFromPosition(dock, from);
         docks[from] = null;
 
@@ -62,86 +89,135 @@ public class Dockmanager : IDisposable
         SetDockToPosition(dock, to);
     }
 
-    public void ReloadDock(UIPosition uiPosition, object data)
+    public void ReloadDock(UIPosition position, object data)
     {
-        if (docks[uiPosition] == null || !GodotObject.IsInstanceValid(docks[uiPosition])) return;
-        docks[uiPosition].Reload(data);
+        EnsureInitialized(nameof(ReloadDock));
+
+        if (!IsDockInstanced(position))
+            return;
+
+        docks[position].Reload(data);
     }
 
-    public void StartDock(UIPosition uiPosition, string page, object data = null)
+    public void StartDock(UIPosition position, string page, object data = null)
     {
-        if (docks[uiPosition] != null && GodotObject.IsInstanceValid(docks[uiPosition])) return;
-        PageDock dock = new PageDock(plugin);
-        dock.Name = page;
-        docks[uiPosition] = dock;
-        SetDockToPosition(dock, uiPosition);
+        if (plugin == null)
+        {
+            ExceptionHandler.ThrowMissingPluginException(nameof(StartDock));
+            return;
+        }
+
+        EnsureInitialized(nameof(StartDock));
+
+        if (IsDockInstanced(position))
+        {
+            ExceptionHandler.ThrowDockAlreadyExistsException(position, nameof(StartDock));
+            return;
+        }
+
+        var dock = new PageDock(plugin)
+        {
+            Name = page
+        };
+
+        docks[position] = dock;
+        SetDockToPosition(dock, position);
         dock.SwitchPage(page, data);
     }
 
-    public void CloseDock(UIPosition uiPosition)
+    public void CloseDock(UIPosition position)
     {
-        if (docks[uiPosition] == null || !GodotObject.IsInstanceValid(docks[uiPosition])) return;
-        RemoveDockFromPosition(docks[uiPosition], uiPosition);
-        docks[uiPosition].QueueFree();
-        docks[uiPosition] = null;
+        EnsureInitialized(nameof(CloseDock));
+
+        var dock = GetDockOrThrow(position, nameof(CloseDock));
+
+        RemoveDockFromPosition(dock, position);
+        dock.QueueFree();
+        docks[position] = null;
     }
 
     public void SetDialogSize(Vector2I size)
     {
-        if (docks[UIPosition.Dialog] == null || !GodotObject.IsInstanceValid(docks[UIPosition.Dialog]))
-            return;
+        EnsureInitialized(nameof(SetDialogSize));
 
-        if (docks[UIPosition.Dialog].GetParent() is PopupPanel popup)
+        var dock = GetDockOrThrow(UIPosition.Dialog, nameof(SetDialogSize));
+
+        var parent = dock.GetParent();
+        if (!GodotObject.IsInstanceValid(parent))
         {
-            popup.Size = size;
+            ExceptionHandler.ThrowMissingNodeException(dock.GetPath(), nameof(SetDialogSize));
+            return;
         }
-    }
 
+        if (parent is not PopupPanel panel)
+        {
+            ExceptionHandler.ThrowInvalidNodeTypeException(
+                parent.GetPath(),
+                typeof(PopupPanel).ToString(),
+                parent.GetType().ToString()
+            );
+            return;
+        }
+
+        panel.Size = size;
+    }
 
     private void SetDockToPosition(Control dock, UIPosition pos)
     {
-        if (pos == UIPosition.Dialog)
+        switch (pos)
         {
-            SetupDialog(dock);
-            return;
-        }
+            case UIPosition.Dialog:
+                SetupDialog(dock);
+                break;
 
-        if (pos == UIPosition.BottomPanel)
-        {
-            plugin.AddControlToBottomPanel(dock, dock.Name);
-            return;
-        }
+            case UIPosition.BottomPanel:
+                plugin.AddControlToBottomPanel(dock, dock.Name);
+                break;
 
-        if (pos >= UIPosition.LeftDockTopLeft && pos <= UIPosition.RightDockBottomRight)
-        {
-            plugin.AddControlToDock(GetDockSlot(pos), dock);
-            return;
-        }
+            case UIPosition.LeftDockTopLeft:
+            case UIPosition.LeftDockTopRight:
+            case UIPosition.LeftDockBottomLeft:
+            case UIPosition.LeftDockBottomRight:
+            case UIPosition.RightDockTopLeft:
+            case UIPosition.RightDockTopRight:
+            case UIPosition.RightDockBottomLeft:
+            case UIPosition.RightDockBottomRight:
+                plugin.AddControlToDock(GetDockSlot(pos), dock);
+                break;
 
-        plugin.AddControlToContainer(GetContainer(pos), dock);
+            default:
+                plugin.AddControlToContainer(GetContainer(pos), dock);
+                break;
+        }
     }
 
     private void RemoveDockFromPosition(Control dock, UIPosition pos)
     {
-        if (pos == UIPosition.Dialog)
+        switch (pos)
         {
-            RemoveDialog();
-            return;
-        }
+            case UIPosition.Dialog:
+                RemoveDialog();
+                break;
 
-        if (pos == UIPosition.BottomPanel)
-        {
-            plugin.RemoveControlFromBottomPanel(dock);
-            return;
-        }
+            case UIPosition.BottomPanel:
+                plugin.RemoveControlFromBottomPanel(dock);
+                break;
 
-        if (pos >= UIPosition.LeftDockTopLeft && pos <= UIPosition.RightDockBottomRight)
-        {
-            plugin.RemoveControlFromDocks(dock);
-            return;
-        }
+            case UIPosition.LeftDockTopLeft:
+            case UIPosition.LeftDockTopRight:
+            case UIPosition.LeftDockBottomLeft:
+            case UIPosition.LeftDockBottomRight:
+            case UIPosition.RightDockTopLeft:
+            case UIPosition.RightDockTopRight:
+            case UIPosition.RightDockBottomLeft:
+            case UIPosition.RightDockBottomRight:
+                plugin.RemoveControlFromDocks(dock);
+                break;
 
-        plugin.RemoveControlFromContainer(GetContainer(pos), dock);
+            default:
+                plugin.RemoveControlFromContainer(GetContainer(pos), dock);
+                break;
+        }
     }
 
     private void SetupDialog(Control dock)
@@ -210,13 +286,15 @@ public class Dockmanager : IDisposable
 
     public void Dispose()
     {
-        foreach (var item in docks)
+        if (docks == null)
+            return;
+
+        foreach (var (pos, dock) in docks)
         {
-            if (item.Value != null && GodotObject.IsInstanceValid(item.Value))
-            {
-                CloseDock(item.Key);
-            }
+            if (GodotObject.IsInstanceValid(dock))
+                CloseDock(pos);
         }
-        docks = new Dictionary<UIPosition, PageDock>();
+
+        docks.Clear();
     }
 }

@@ -14,13 +14,13 @@ public partial class Plugin : EditorPlugin
     public override void _Ready()
     {
         config = new ConfigLoader();
-        config.Init("res://addons/scene_paletter/plugin.cfg");
+        ExceptionHandler.SafeExecute(() => config.Init("res://addons/scene_paletter/plugin.cfg"), nameof(config.Init), nameof(_Ready));
 
         sceneLoader = new SceneLoader();
-        sceneLoader.Init(this);
-        
+        ExceptionHandler.SafeExecute(() => sceneLoader.Init(this), nameof(sceneLoader.Init), nameof(_Ready));
+
         dockManager = new Dockmanager(this);
-        dockManager.Init();
+        ExceptionHandler.SafeExecute(() => dockManager.Init(), nameof(dockManager.Init), nameof(_Ready));
     }
 
     public override void _ExitTree()

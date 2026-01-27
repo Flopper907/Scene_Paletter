@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Addons.ScenePaletter.Core;
@@ -27,14 +28,54 @@ public partial class PageDock : VBoxContainer
 
     public void SwitchPage(string page, object pageData)
     {
-        if (plugin == null || !plugin.sceneLoader.HasPage(page)) return;
-        Clear();
-        this.page = page;
-        data = pageData;
-        node = plugin.sceneLoader.GetPage(page).Instantiate() as Control;
+        if (plugin == null)
+        {
+            ExceptionHandler.ThrowMissingPluginException($"Dock: {GetType().Name}");
+            return;
+        }
+        if (plugin.sceneLoader == null)
+        {
+            ExceptionHandler.ThrowMissingSceneLoaderException($"Dock: {GetType().Name}");
+            return;
+        }
+        if (!plugin.sceneLoader.HasPage(page))
+        {
+            ExceptionHandler.ThrowMissingPageException(page);
+            return;
+        }
 
-        AddChild(node);
-        CallDeferred(MethodName.UpdateName);
+        try
+        {
+            Clear();
+            this.page = page;
+            data = pageData;
+
+            PackedScene scene = plugin.sceneLoader.GetPage(page);
+            if (scene == null)
+            {
+                ExceptionHandler.ThrowResourceLoadException(page, nameof(SwitchPage));
+                return;
+            }
+
+            node = scene.Instantiate() as Control;
+            if (node == null)
+            {
+                ExceptionHandler.ThrowSceneInstantiationException(page, nameof(SwitchPage));
+                return;
+            }
+
+            AddChild(node);
+            CallDeferred(MethodName.UpdateName);
+        }
+        catch (Exception ex) when (!(ex is NullReferenceException)) // Ignore expected nulls
+        {
+            ExceptionHandler.ThrowUnexpectedException(ex, $"{nameof(SwitchPage)} - {page}");
+            if (node != null && IsInstanceValid(node))
+            {
+                node.QueueFree();
+                node = null;
+            }
+        }
     }
 
     public void Reload(object pageData)
@@ -44,7 +85,11 @@ public partial class PageDock : VBoxContainer
 
     private void UpdateName()
     {
-        if (node == null || !IsInstanceValid(node)) return;
+        if (node == null || !IsInstanceValid(node))
+        {
+            ExceptionHandler.ThrowMissingNodeException(GetPath(), nameof(UpdateName));
+            return;
+        }
 
         string title = "";
         try { title = node.Get("Title").AsString(); } catch { }

@@ -1,3 +1,4 @@
+using Addons.ScenePaletter.Core;
 using Godot;
 using System;
 using System.Collections.Generic;
@@ -8,58 +9,129 @@ public class SceneLoader : IDisposable
 {
     private Dictionary<string, PackedScene> Pages;
     private Dictionary<string, PackedScene> Widgets;
-    private Plugin plugin;
 
     public void Init(Plugin plugin)
     {
-        this.plugin = plugin;
-        if (plugin.config != null)
+        if (plugin == null)
         {
-            Pages = new Dictionary<string, PackedScene>();
-            foreach (var item in plugin.config.ScenePaths)
+            ExceptionHandler.ThrowMissingPluginException(nameof(Init));
+            return;
+        }
+
+        if (plugin.config == null)
+        {
+            ExceptionHandler.ThrowMissingConfigException(nameof(Init));
+            return;
+        }
+
+        if (plugin.config.ScenePaths == null)
+        {
+            ExceptionHandler.ThrowNullReferenceException(nameof(plugin.config.ScenePaths), nameof(Init));
+            return;
+        }
+
+        Pages = new Dictionary<string, PackedScene>();
+        Widgets = new Dictionary<string, PackedScene>();
+
+        // Load Pages
+        foreach (var (key, path) in plugin.config.ScenePaths)
+        {
+            var scene = GD.Load<PackedScene>(path);
+            if (scene == null)
             {
-                Pages[item.Key] = GD.Load<PackedScene>(item.Value);
+                ExceptionHandler.ThrowResourceLoadException(path, nameof(Init));
+                continue;
             }
 
-            Widgets = new Dictionary<string, PackedScene>();
-            foreach (var item in plugin.config.WidgetPaths)
+            Pages[key] = scene;
+        }
+
+        // Load Widgets
+        if (plugin.config.WidgetPaths == null)
+            return; // widgets are optional
+
+        foreach (var (key, path) in plugin.config.WidgetPaths)
+        {
+            var scene = GD.Load<PackedScene>(path);
+            if (scene == null)
             {
-                Widgets[item.Key] = GD.Load<PackedScene>(item.Value);
+                ExceptionHandler.ThrowResourceLoadException(path, nameof(Init));
+                continue;
             }
+
+            Widgets[key] = scene;
         }
     }
 
-    public PackedScene GetPage(string page)
+    private void EnsureInitialized(string caller)
     {
-        if (HasPage(page))
-        {
-            return Pages[page];
-        }
-        return null;
+        if (Pages == null || Widgets == null)
+            ExceptionHandler.ThrowMissingSceneLoaderException(caller);
     }
 
     public bool HasPage(string page)
     {
-        return Pages.ContainsKey(page);
+        return Pages != null && Pages.ContainsKey(page);
+    }
+
+    public PackedScene GetPage(string page)
+    {
+        EnsureInitialized(nameof(GetPage));
+
+        if (!HasPage(page))
+        {
+            ExceptionHandler.ThrowMissingPageException(page, nameof(GetPage));
+            return null;
+        }
+
+        return Pages[page];
+    }
+
+    public PackedScene GetPageOrThrow(string page, string context = "")
+    {
+        EnsureInitialized(nameof(GetPageOrThrow));
+
+        if (!HasPage(page))
+            ExceptionHandler.ThrowMissingPageException(page, context);
+
+        return Pages[page];
+    }
+
+
+    public bool HasWidget(string widget)
+    {
+        return Widgets != null && Widgets.ContainsKey(widget);
     }
 
     public PackedScene GetWidget(string widget)
     {
-        if (HasWidget(widget))
+        EnsureInitialized(nameof(GetWidget));
+
+        if (!HasWidget(widget))
         {
-            return Widgets[widget];
+            ExceptionHandler.ThrowMissingWidgetException(widget, nameof(GetWidget));
+            return null;
         }
-        return null;
+
+        return Widgets[widget];
     }
 
-    public bool HasWidget(string widget)
+    public PackedScene GetWidgetOrThrow(string widget, string context = "")
     {
-        return Widgets.ContainsKey(widget);
+        EnsureInitialized(nameof(GetWidgetOrThrow));
+
+        if (!HasWidget(widget))
+            ExceptionHandler.ThrowMissingWidgetException(widget, context);
+
+        return Widgets[widget];
     }
 
     public void Dispose()
     {
-        Pages = new Dictionary<string, PackedScene>();
-        Widgets = new Dictionary<string, PackedScene>();
+        Pages?.Clear();
+        Widgets?.Clear();
+
+        Pages = null;
+        Widgets = null;
     }
 }

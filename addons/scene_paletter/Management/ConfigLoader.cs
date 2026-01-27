@@ -1,4 +1,5 @@
 using System;
+using Addons.ScenePaletter.Core;
 using Godot;
 using Godot.Collections;
 
@@ -30,26 +31,55 @@ public class ConfigLoader : IDisposable
 
     public void Init(string path)
     {
-        configFile = new ConfigFile();
-        configFile.Load(path);
+        ExceptionHandler.SafeExecute(() =>
+        {
+            configFile = new ConfigFile();
+            var error = configFile.Load(path);
 
-        // file section
+            if (error != Error.Ok)
+            {
+                ExceptionHandler.ThrowConfigLoadException(path, $"Error code: {error}");
+                return;
+            }
+        }, "ConfigFile.Load", $"Path: {path}");
+
+        if (configFile == null)
+        {
+            ExceptionHandler.ThrowConfigLoadException(path, "ConfigFile is null after load");
+            return;
+        }
+
+
+        ExceptionHandler.SafeExecute(() =>
+        {
+            LoadFileSection();
+            LoadPageSection();
+            LoadUISection();
+        }, "ConfigLoader.Init", $"Path: {path}");
+    }
+
+    private void LoadFileSection()
+    {
         PalettePath = GetString("file", "palette_path");
         FileExtension = GetString("file", "file_extension");
         IdStart = GetInt("file", "id_start");
         IdEnd = GetInt("file", "id_end");
+    }
 
-        // page section
+    private void LoadPageSection()
+    {
         ScenePaths = GetDictionary("page", "pages", new Dictionary<string, string>());
         WidgetPaths = GetDictionary("page", "widgets", new Dictionary<string, string>());
         InitialDocks = GetDictionary("page", "initial_docks", new Dictionary<string, string>());
+    }
 
-        // ui section
-        MaxColums = GetInt("ui", "max_columns");
-        MinColums = GetInt("ui", "min_columns");
-        Columns = GetInt("ui", "columns");
-        PreviewResolution = GetVector2I("ui", "preview_resolution_x", "preview_resolution_y", Vector2I.Zero);
-        PreviewMargin = GetVector2("ui", "preview_margin_x", "preview_margin_y", Vector2.Zero);
+    private void LoadUISection()
+    {
+        MaxColums = GetInt("ui", "max_columns", 6);
+        MinColums = GetInt("ui", "min_columns", 1);
+        Columns = GetInt("ui", "columns", 2);
+        PreviewResolution = GetVector2I("ui", "preview_resolution_x", "preview_resolution_y", new Vector2I(256, 256));
+        PreviewMargin = GetVector2("ui", "preview_margin_x", "preview_margin_y", new Vector2(10f, 10f));
         PreviewTransparent2D = GetBool("ui", "preview_2d_transparent");
         PreviewTransparent3D = GetBool("ui", "preview_3d_transparent");
     }
@@ -68,40 +98,68 @@ public class ConfigLoader : IDisposable
     {
         if (!configFile.HasSectionKey(section, key))
         {
-            GD.PushWarning($"Config missing: {section}/{key}, using default: {defaultValue}");
+            ExceptionHandler.ThrowConfigLoadException($"Tried loading {section}/{key}", "Returning default value");
             return defaultValue;
         }
-        return (string)configFile.GetValue(section, key);
+
+        Variant v = configFile.GetValue(section, key);
+        if (v.VariantType != Variant.Type.String)
+        {
+            ExceptionHandler.ThrowInvalidResourceTypeException($"Config {section}/{key}", Variant.Type.String.ToString(), v.VariantType.ToString());
+            return defaultValue;
+        }
+        return (string)v;
     }
 
     private int GetInt(string section, string key, int defaultValue = 0)
     {
         if (!configFile.HasSectionKey(section, key))
         {
-            GD.PushWarning($"Config missing: {section}/{key}, using default: {defaultValue}");
+            ExceptionHandler.ThrowConfigLoadException($"Tried loading {section}/{key}", "Returning default value");
             return defaultValue;
         }
-        return (int)configFile.GetValue(section, key);
+
+        Variant v = configFile.GetValue(section, key);
+        if (v.VariantType != Variant.Type.Int)
+        {
+            ExceptionHandler.ThrowInvalidResourceTypeException($"Config {section}/{key}", Variant.Type.Int.ToString(), v.VariantType.ToString());
+            return defaultValue;
+        }
+        return (int)v;
     }
 
     private float GetFloat(string section, string key, float defaultValue = 0f)
     {
         if (!configFile.HasSectionKey(section, key))
         {
-            GD.PushWarning($"Config missing: {section}/{key}, using default: {defaultValue}");
+            ExceptionHandler.ThrowConfigLoadException($"Tried loading {section}/{key}", "Returning default value");
             return defaultValue;
         }
-        return (float)configFile.GetValue(section, key);
+
+        Variant v = configFile.GetValue(section, key);
+        if (v.VariantType != Variant.Type.Float)
+        {
+            ExceptionHandler.ThrowInvalidResourceTypeException($"Config {section}/{key}", Variant.Type.Float.ToString(), v.VariantType.ToString());
+            return defaultValue;
+        }
+        return (float)v;
     }
 
     private bool GetBool(string section, string key, bool defaultValue = false)
     {
         if (!configFile.HasSectionKey(section, key))
         {
-            GD.PushWarning($"Config missing: {section}/{key}, using default: {defaultValue}");
+            ExceptionHandler.ThrowConfigLoadException($"Tried loading {section}/{key}", "Returning default value");
             return defaultValue;
         }
-        return (bool)configFile.GetValue(section, key);
+
+        Variant v = configFile.GetValue(section, key);
+        if (v.VariantType != Variant.Type.Bool)
+        {
+            ExceptionHandler.ThrowInvalidResourceTypeException($"Config {section}/{key}", Variant.Type.Bool.ToString(), v.VariantType.ToString());
+            return defaultValue;
+        }
+        return (bool)v;
     }
 
     private Vector2 GetVector2(string section, string keyX, string keyY, Vector2 defaultValue)
@@ -122,10 +180,17 @@ public class ConfigLoader : IDisposable
     {
         if (!configFile.HasSectionKey(section, key))
         {
-            GD.PushWarning($"Config missing: {section}/{key}, using default: {defaultValue}");
+            ExceptionHandler.ThrowConfigLoadException($"Tried loading {section}/{key}", "Returning default value");
             return defaultValue;
         }
-        return (Dictionary<string, string>)configFile.GetValue(section, key);
+
+        Variant v = configFile.GetValue(section, key);
+        if (v.VariantType != Variant.Type.Dictionary)
+        {
+            ExceptionHandler.ThrowInvalidResourceTypeException($"Config {section}/{key}", Variant.Type.Dictionary.ToString(), v.VariantType.ToString());
+            return defaultValue;
+        }
+        return (Dictionary<string, string>)v;
     }
 
     public void Dispose()

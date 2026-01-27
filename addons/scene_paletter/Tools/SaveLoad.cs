@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Godot;
+using Addons.ScenePaletter.Core;
 
 namespace Addons.ScenePaletter.Tools;
 
-public class SaveLoad
+public static class SaveLoad
 {
-    private static readonly bool print = false;
-    private static readonly bool printErr = true;
-
     private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
     {
         WriteIndented = true,
         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
     };
+
+    // --------------------------------------------------
+    // Save
+    // --------------------------------------------------
 
     public static void Save<T>(T data, string path)
     {
@@ -23,203 +25,199 @@ public class SaveLoad
         {
             string jsonData = JsonSerializer.Serialize(data, JsonOptions);
             File.WriteAllText(ProjectSettings.GlobalizePath(path), jsonData);
-            Print("Data saved successfully to: " + ProjectSettings.GlobalizePath(path));
         }
         catch (Exception ex)
         {
-            PrintErr("Error saving data: " + ex.Message);
+            ExceptionHandler.ThrowSerializationException(typeof(T).Name, nameof(Save));
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(Save));
         }
     }
 
-    public static T Load<T>(string path) where T : new() // Ensure T has a parameterless constructor
+    // --------------------------------------------------
+    // Load (guaranteed return)
+    // --------------------------------------------------
+
+    public static T Load<T>(string path) where T : new()
     {
+        string globalPath = ProjectSettings.GlobalizePath(path);
+
         try
         {
-            if (File.Exists(ProjectSettings.GlobalizePath(path)))
+            if (!File.Exists(globalPath))
             {
-                string jsonData = File.ReadAllText(ProjectSettings.GlobalizePath(path));
-                T data = JsonSerializer.Deserialize<T>(jsonData);
-                Print("Data loaded successfully from: " + ProjectSettings.GlobalizePath(path));
-                return data;
-            }
-            else
-            {
-                PrintErr("File new created, because not found: " + path);
+                ExceptionHandler.ThrowFileNotFoundException(path, nameof(Load));
                 T newData = new T();
                 Save(newData, path);
                 return newData;
             }
+
+            string jsonData = File.ReadAllText(globalPath);
+            T data = JsonSerializer.Deserialize<T>(jsonData);
+
+            if (data == null)
+            {
+                ExceptionHandler.ThrowDeserializationException(typeof(T).Name, path, nameof(Load));
+                return new T();
+            }
+
+            return data;
         }
         catch (Exception ex)
         {
-            PrintErr("Error loading data: " + ex.Message);
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(Load));
+            return new T();
         }
-
-        return new T();
     }
 
-    public static T TryLoad<T>(string path) where T : new() // Ensure T has a parameterless constructor
+    // --------------------------------------------------
+    // TryLoad (soft fail)
+    // --------------------------------------------------
+
+    public static T TryLoad<T>(string path) where T : new()
     {
+        string globalPath = ProjectSettings.GlobalizePath(path);
+
         try
         {
-            if (File.Exists(ProjectSettings.GlobalizePath(path)))
+            if (!File.Exists(globalPath))
             {
-                string jsonData = File.ReadAllText(ProjectSettings.GlobalizePath(path));
-                T data = JsonSerializer.Deserialize<T>(jsonData);
-                Print("Data loaded successfully from: " + ProjectSettings.GlobalizePath(path));
-                return data;
-            }
-            else
-            {
-                PrintErr("File new created, because not found: " + path);
+                ExceptionHandler.ThrowFileNotFoundException(path, nameof(TryLoad));
                 return default;
             }
+
+            string jsonData = File.ReadAllText(globalPath);
+            T data = JsonSerializer.Deserialize<T>(jsonData);
+
+            if (data == null)
+            {
+                ExceptionHandler.ThrowDeserializationException(typeof(T).Name, path, nameof(TryLoad));
+                return default;
+            }
+
+            return data;
         }
         catch (Exception ex)
         {
-            PrintErr("Error loading data: " + ex.Message);
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(TryLoad));
+            return default;
         }
-
-        return new T();
     }
+
+    // --------------------------------------------------
+    // Load All
+    // --------------------------------------------------
 
     public static List<T> LoadAll<T>(string folder, string endsWith) where T : new()
     {
-        List<T> results = new List<T>();
+        var results = new List<T>();
+        string globalPath = ProjectSettings.GlobalizePath(folder);
 
         try
         {
-            string globalPath = ProjectSettings.GlobalizePath(folder);
-
-            // Check if directory exists
             if (!Directory.Exists(globalPath))
             {
-                PrintErr($"Folder not found: {folder}");
+                ExceptionHandler.ThrowFolderNotFoundException(folder, nameof(LoadAll));
                 return results;
             }
 
-            // Get all files in the directory
-            string[] files = Directory.GetFiles(globalPath);
-
-            foreach (string file in files)
+            foreach (string file in Directory.GetFiles(globalPath))
             {
-                // Check if file ends with the specified extension
-                if (file.EndsWith(endsWith, StringComparison.OrdinalIgnoreCase))
-                {
-                    try
-                    {
-                        string jsonData = File.ReadAllText(file);
-                        T data = JsonSerializer.Deserialize<T>(jsonData);
+                if (!file.EndsWith(endsWith, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-                        if (data != null)
-                        {
-                            results.Add(data);
-                            Print($"Loaded: {file}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        PrintErr($"Error loading file {file}: {ex.Message}");
-                        // Continue loading other files even if one fails
-                    }
+                try
+                {
+                    string jsonData = File.ReadAllText(file);
+                    T data = JsonSerializer.Deserialize<T>(jsonData);
+
+                    if (data != null)
+                        results.Add(data);
+                    else
+                        ExceptionHandler.ThrowDeserializationException(typeof(T).Name, file, nameof(LoadAll));
+                }
+                catch (Exception ex)
+                {
+                    ExceptionHandler.ThrowUnexpectedException(ex, $"{nameof(LoadAll)}:{file}");
                 }
             }
-
-            Print($"Successfully loaded {results.Count} file(s) from: {folder}");
         }
         catch (Exception ex)
         {
-            PrintErr($"Error loading files from folder: {ex.Message}");
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(LoadAll));
         }
 
         return results;
     }
+
+    // --------------------------------------------------
+    // Load All With Filename
+    // --------------------------------------------------
 
     public static List<(T data, string filename)> LoadAllWithFile<T>(string folder, string endsWith) where T : new()
     {
-        List<(T data, string filename)> results = new List<(T data, string filename)>();
+        var results = new List<(T data, string filename)>();
+        string globalPath = ProjectSettings.GlobalizePath(folder);
 
         try
         {
-            string globalPath = ProjectSettings.GlobalizePath(folder);
-
-            // Check if directory exists
             if (!Directory.Exists(globalPath))
             {
-                PrintErr($"Folder not found: {folder}");
+                ExceptionHandler.ThrowFolderNotFoundException(folder, nameof(LoadAllWithFile));
                 return results;
             }
 
-            // Get all files in the directory
-            string[] files = Directory.GetFiles(globalPath);
-
-            foreach (string file in files)
+            foreach (string file in Directory.GetFiles(globalPath))
             {
-                // Check if file ends with the specified extension
-                if (file.EndsWith(endsWith, StringComparison.OrdinalIgnoreCase))
-                {
-                    try
-                    {
-                        string jsonData = File.ReadAllText(file);
-                        T data = JsonSerializer.Deserialize<T>(jsonData);
+                if (!file.EndsWith(endsWith, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-                        if (data != null)
-                        {
-                            string filename = Path.GetFileName(file);
-                            results.Add((data, filename));
-                            Print($"Loaded: {filename}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        PrintErr($"Error loading file {file}: {ex.Message}");
-                    }
+                try
+                {
+                    string jsonData = File.ReadAllText(file);
+                    T data = JsonSerializer.Deserialize<T>(jsonData);
+
+                    if (data != null)
+                        results.Add((data, Path.GetFileName(file)));
+                    else
+                        ExceptionHandler.ThrowDeserializationException(typeof(T).Name, file, nameof(LoadAllWithFile));
+                }
+                catch (Exception ex)
+                {
+                    ExceptionHandler.ThrowUnexpectedException(ex, $"{nameof(LoadAllWithFile)}:{file}");
                 }
             }
-
-            Print($"Successfully loaded {results.Count} file(s) from: {folder}");
         }
         catch (Exception ex)
         {
-            PrintErr($"Error loading files from folder: {ex.Message}");
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(LoadAllWithFile));
         }
 
         return results;
     }
 
+    // --------------------------------------------------
+    // Delete
+    // --------------------------------------------------
+
     public static bool Delete(string path)
     {
+        string globalPath = ProjectSettings.GlobalizePath(path);
+
         try
         {
-            string globalPath = ProjectSettings.GlobalizePath(path);
-
-            if (File.Exists(globalPath))
+            if (!File.Exists(globalPath))
             {
-                File.Delete(globalPath);
-                Print("File deleted successfully: " + globalPath);
-                return true;
-            }
-            else
-            {
-                PrintErr("File not found: " + path);
+                ExceptionHandler.ThrowFileNotFoundException(path, nameof(Delete));
                 return false;
             }
+
+            File.Delete(globalPath);
+            return true;
         }
         catch (Exception ex)
         {
-            PrintErr("Error deleting file: " + ex.Message);
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(Delete));
             return false;
         }
-    }
-
-    // ============= Helper ==============
-    private static void Print(string s)
-    {
-        if (print) GD.Print(s);
-    }
-
-    private static void PrintErr(string s)
-    {
-        if (printErr) GD.PrintErr(s);
     }
 }
