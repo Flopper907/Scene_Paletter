@@ -115,7 +115,7 @@ public class DockManager : IDisposable
     }
 
     /// <summary>
-    /// Retrieves an existing dock or logs an error if it does not exist.
+    /// Returns an existing dock or logs an error if it does not exist.
     /// </summary>
     /// <remarks>
     /// <para>Logs via <c>ExceptionHandler.ThrowDockNotFoundException</c> if dock at <c>position</c> is <c>null</c>.</para>
