@@ -5,6 +5,11 @@ using Godot.Collections;
 
 namespace Addons.ScenePaletter.Management;
 
+/// <summary>
+/// Manages config file loading from Godot's <c>ConfigFile</c> format.
+/// Provides strongly-typed access to plugin settings across all sections you build in
+/// To add a new section to be loaded, add a private <c>void LoadNameSection</c> and call it from <c>ExceptionHandler.SafeExecute</c>
+/// </summary>
 public class ConfigLoader : IDisposable
 {
     private ConfigFile configFile;
@@ -21,14 +26,21 @@ public class ConfigLoader : IDisposable
     public Dictionary<string, string> InitialDocks { get; private set; }
 
     // ui section
-    public int MinColums { get; private set; }
-    public int MaxColums { get; private set; }
+    public int MinColumns { get; private set; }
+    public int MaxColumns { get; private set; }
     public int Columns { get; private set; }
     public Vector2I PreviewResolution { get; private set; }
     public Vector2 PreviewMargin { get; private set; }
     public bool PreviewTransparent2D { get; private set; }
     public bool PreviewTransparent3D { get; private set; }
 
+    /// <summary> 
+    /// Loads a config file with <c>path</c>
+    /// </summary>
+    /// <remarks>
+    /// Uses the <c>ConfigFile</c> class to load the file. This defines how values are written/read.
+    /// Logs <c>ExceptionHandler.ThrowConfigLoadException</c> if the config file is not found.
+    /// </remarks>
     public void Init(string path)
     {
         ExceptionHandler.SafeExecute(() =>
@@ -49,15 +61,22 @@ public class ConfigLoader : IDisposable
             return;
         }
 
-
         ExceptionHandler.SafeExecute(() =>
         {
+            // TODO: Add additional section loaders here (e.g., `LoadNetworkSection()`).
+            //       Call them from here
             LoadFileSection();
             LoadPageSection();
             LoadUISection();
         }, "ConfigLoader.Init", $"Path: {path}");
     }
 
+    /// <summary> 
+    /// Loads all config variables under section <c>file</c>
+    /// </summary>
+    /// <remarks>
+    /// It only uses the <c>GetInt/GetFloat/...</c> methods
+    /// </remarks>
     private void LoadFileSection()
     {
         PalettePath = GetString("file", "palette_path");
@@ -66,6 +85,12 @@ public class ConfigLoader : IDisposable
         IdEnd = GetInt("file", "id_end");
     }
 
+    /// <summary> 
+    /// Loads all config variables under section <c>page</c>
+    /// </summary>
+    /// <remarks>
+    /// It only uses the <c>GetInt/GetFloat/...</c> methods
+    /// </remarks>
     private void LoadPageSection()
     {
         ScenePaths = GetDictionary("page", "pages", new Dictionary<string, string>());
@@ -73,10 +98,16 @@ public class ConfigLoader : IDisposable
         InitialDocks = GetDictionary("page", "initial_docks", new Dictionary<string, string>());
     }
 
+    /// <summary> 
+    /// Loads all config variables under section <c>ui</c>
+    /// </summary>
+    /// <remarks>
+    /// It only uses the <c>GetBool/GetInt/GetFloat/...</c> methods
+    /// </remarks>
     private void LoadUISection()
     {
-        MaxColums = GetInt("ui", "max_columns", 6);
-        MinColums = GetInt("ui", "min_columns", 1);
+        MaxColumns = GetInt("ui", "max_columns", 6);
+        MinColumns = GetInt("ui", "min_columns", 1);
         Columns = GetInt("ui", "columns", 2);
         PreviewResolution = GetVector2I("ui", "preview_resolution_x", "preview_resolution_y", new Vector2I(256, 256));
         PreviewMargin = GetVector2("ui", "preview_margin_x", "preview_margin_y", new Vector2(10f, 10f));
@@ -84,16 +115,36 @@ public class ConfigLoader : IDisposable
         PreviewTransparent3D = GetBool("ui", "preview_3d_transparent");
     }
 
+    /// <summary> 
+    /// Increment <c>Columns</c> until it reaches <c>MaxColumns</c>
+    /// </summary>
+    /// <remarks>
+    /// No error is logged if <c>Columns</c> is already at <c>MaxColumns</c> when calling <c>AddColumn</c>.
+    /// </remarks>
     public void AddColumn()
     {
-        Columns = Math.Min(MaxColums, Columns + 1);
+        Columns = Math.Min(MaxColumns, Columns + 1);
     }
 
+    /// <summary> 
+    /// Decrement <c>Columns</c> until it reaches <c>MinColumns</c>
+    /// </summary>
+    /// <remarks>
+    /// No error is logged if <c>Columns</c> is already at <c>MinColumns</c> when calling <c>RemoveColumn</c>.
+    /// </remarks>
     public void RemoveColumn()
     {
-        Columns = Math.Max(MinColums, Columns - 1);
+        Columns = Math.Max(MinColumns, Columns - 1);
     }
 
+    /// <summary>
+    /// Loads a <c>string</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Logs via <c>ExceptionHandler.ThrowConfigLoadException</c> if key is missing,
+    /// or <c>ExceptionHandler.ThrowInvalidResourceTypeException</c> if type is wrong.
+    /// </remarks>
     private string GetString(string section, string key, string defaultValue = "")
     {
         if (!configFile.HasSectionKey(section, key))
@@ -111,6 +162,14 @@ public class ConfigLoader : IDisposable
         return (string)v;
     }
 
+    /// <summary>
+    /// Loads a <c>int</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Logs via <c>ExceptionHandler.ThrowConfigLoadException</c> if key is missing,
+    /// or <c>ExceptionHandler.ThrowInvalidResourceTypeException</c> if type is wrong.
+    /// </remarks>
     private int GetInt(string section, string key, int defaultValue = 0)
     {
         if (!configFile.HasSectionKey(section, key))
@@ -128,6 +187,14 @@ public class ConfigLoader : IDisposable
         return (int)v;
     }
 
+    /// <summary>
+    /// Loads a <c>float</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Logs via <c>ExceptionHandler.ThrowConfigLoadException</c> if key is missing,
+    /// or <c>ExceptionHandler.ThrowInvalidResourceTypeException</c> if type is wrong.
+    /// </remarks>
     private float GetFloat(string section, string key, float defaultValue = 0f)
     {
         if (!configFile.HasSectionKey(section, key))
@@ -145,6 +212,14 @@ public class ConfigLoader : IDisposable
         return (float)v;
     }
 
+    /// <summary>
+    /// Loads a <c>bool</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Logs via <c>ExceptionHandler.ThrowConfigLoadException</c> if key is missing,
+    /// or <c>ExceptionHandler.ThrowInvalidResourceTypeException</c> if type is wrong.
+    /// </remarks>
     private bool GetBool(string section, string key, bool defaultValue = false)
     {
         if (!configFile.HasSectionKey(section, key))
@@ -162,6 +237,13 @@ public class ConfigLoader : IDisposable
         return (bool)v;
     }
 
+    /// <summary>
+    /// Loads a <c>Vector2</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Loads each value independently using <c>GetFloat</c>.
+    /// </remarks>
     private Vector2 GetVector2(string section, string keyX, string keyY, Vector2 defaultValue)
     {
         float x = GetFloat(section, keyX, defaultValue.X);
@@ -169,6 +251,13 @@ public class ConfigLoader : IDisposable
         return new Vector2(x, y);
     }
 
+    /// <summary>
+    /// Loads a <c>Vector2I</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Loads each value independently using <c>GetFloat</c>.
+    /// </remarks>
     private Vector2I GetVector2I(string section, string keyX, string keyY, Vector2I defaultValue)
     {
         int x = GetInt(section, keyX, defaultValue.X);
@@ -176,6 +265,44 @@ public class ConfigLoader : IDisposable
         return new Vector2I(x, y);
     }
 
+    /// <summary>
+    /// Loads a <c>Vector3</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Loads each value independently using <c>GetFloat</c>.
+    /// </remarks>
+    private Vector3 GetVector3(string section, string keyX, string keyY, string keyZ, Vector3 defaultValue)
+    {
+        float x = GetFloat(section, keyX, defaultValue.X);
+        float y = GetFloat(section, keyY, defaultValue.Y);
+        float z = GetFloat(section, keyZ, defaultValue.Z);
+        return new Vector3(x, y, z);
+    }
+
+    /// <summary>
+    /// Loads a <c>Vector3I</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Loads each value independently using <c>GetFloat</c>.
+    /// </remarks>
+    private Vector3I GetVector3I(string section, string keyX, string keyY, string keyZ, Vector3I defaultValue)
+    {
+        int x = GetInt(section, keyX, defaultValue.X);
+        int y = GetInt(section, keyY, defaultValue.Y);
+        int z = GetInt(section, keyZ, defaultValue.Z);
+        return new Vector3I(x, y, z);
+    }
+
+    /// <summary>
+    /// Loads a <c>Dictionary(string, string)</c> from <c>section</c>|<c>key</c> in <c>configFile</c>.
+    /// </summary>
+    /// <returns>Value from <c>configFile</c> at <c>section</c>|<c>key</c>, when not possible, returns <c>defaultValue</c></returns>
+    /// <remarks>
+    /// Logs via <c>ExceptionHandler.ThrowConfigLoadException</c> if key is missing,
+    /// or <c>ExceptionHandler.ThrowInvalidResourceTypeException</c> if type is wrong.
+    /// </remarks>
     private Dictionary<string, string> GetDictionary(string section, string key, Dictionary<string, string> defaultValue)
     {
         if (!configFile.HasSectionKey(section, key))
@@ -193,6 +320,9 @@ public class ConfigLoader : IDisposable
         return (Dictionary<string, string>)v;
     }
 
+    /// <summary>
+    /// Disposes the underlying <c>ConfigFile</c> resource.
+    /// </summary>
     public void Dispose()
     {
         configFile?.Dispose();

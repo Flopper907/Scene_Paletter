@@ -79,7 +79,7 @@ public partial class EditingPage : Page<EditingPageData>
             catch (System.Exception ex)
             {
                 ExceptionHandler.ThrowUnexpectedException(ex, $"{GetType().Name} {nameof(Initialize)} - Processing palette item at index {i}");
-                continue; // Skip this item and continue with the next
+                continue;
             }
         }
 
