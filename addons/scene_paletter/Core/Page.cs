@@ -3,6 +3,26 @@ using Godot;
 
 namespace Addons.ScenePaletter.Core;
 
+/// <summary>
+/// Base class for all plugin pages. Provides lifecycle management, data handling, and docking integration.
+/// </summary>
+/// <remarks>
+/// <para>Pages are automatically initialized when added to a <see cref="PageDock"/>.</para>
+/// <para>Override <see cref="Initialize"/> to set up your page's UI and logic.</para>
+/// <para>Access the plugin instance via the <see cref="plugin"/> property.</para>
+/// </remarks>
+/// <example>
+/// <code>
+/// [Tool]
+/// public class MyPage : Page&lt;MyData&gt;
+/// {
+///     public override void Initialize()
+///     {
+///         // Setup your page here
+///     }
+/// }
+/// </code>
+/// </example>
 public abstract partial class Page<T> : Control
 {
     protected T data;

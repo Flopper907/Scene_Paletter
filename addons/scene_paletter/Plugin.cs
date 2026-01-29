@@ -8,7 +8,7 @@ namespace Addons.ScenePaletter;
 public partial class Plugin : EditorPlugin
 {
     public ConfigLoader config;
-    public Dockmanager dockManager;
+    public DockManager dockManager;
     public SceneLoader sceneLoader;
 
     public override void _Ready()
@@ -19,7 +19,7 @@ public partial class Plugin : EditorPlugin
         sceneLoader = new SceneLoader();
         ExceptionHandler.SafeExecute(() => sceneLoader.Init(this), nameof(sceneLoader.Init), nameof(_Ready));
 
-        dockManager = new Dockmanager(this);
+        dockManager = new DockManager(this);
         ExceptionHandler.SafeExecute(() => dockManager.Init(), nameof(dockManager.Init), nameof(_Ready));
     }
 
