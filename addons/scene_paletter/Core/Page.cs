@@ -4,25 +4,42 @@ using Godot;
 namespace Addons.ScenePaletter.Core;
 
 /// <summary>
-/// Base class for all plugin pages. Provides lifecycle management, data handling, and docking integration.
+/// Abstract base class for all plugin pages in the system.
+/// Provides lifecycle management, strongly-typed data handling (<c>T</c>),
+/// and integration with <c>PageDock</c>.
 /// </summary>
 /// <remarks>
-/// <para>Pages are automatically initialized when added to a <see cref="PageDock"/>.</para>
-/// <para>Override <see cref="Initialize"/> to set up your page's UI and logic.</para>
-/// <para>Access the plugin instance via the <see cref="plugin"/> property.</para>
-/// </remarks>
+/// <para>Pages are automatically initialized when added to a <c>PageDock</c>.</para>
+/// <para>Override <c>Initialize</c> to set up your page's UI and logic.</para>
+/// <para>Access the plugin instance via the <c>plugin</c> property.</para>
 /// <example>
+/// Example Page:
 /// <code>
+/// public struct MyPageData{
+///     public int Counter;
+/// }
+/// 
 /// [Tool]
-/// public class MyPage : Page&lt;MyData&gt;
+/// public class MyPage : Page&lt;MyPageData&gt;
 /// {
+///     [Export] private Label label;
 ///     public override void Initialize()
 ///     {
 ///         // Setup your page here
+///         label.Text = $"Count: {data.Counter}";
+///         Title = $"Refreshes: {data.Counter}";
+///     }
+/// 
+///     // Add as Signal to Button
+///     public void Increment()
+///     {
+///         data.Counter++;
+///         dock.ReloadPage(data);
 ///     }
 /// }
 /// </code>
 /// </example>
+/// </remarks>
 public abstract partial class Page<T> : Control
 {
     protected T data;
@@ -31,9 +48,62 @@ public abstract partial class Page<T> : Control
 
     public string Title { get; protected set; }
 
-
+    /// <summary>
+    /// Initializes the page with its data and sets up the UI and logic.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This method is called automatically by the framework after the page is added to a <c>PageDock</c>
+    /// and all required dependencies are validated. Override this method to:
+    /// <list type="bullet">
+    ///   <item>Set up your page's UI elements (e.g., labels, buttons, containers).</item>
+    ///   <item>Bind event handlers (e.g., button clicks, signal connections).</item>
+    ///   <item>Initialize your page using the strongly-typed <c>data</c> property.</item>
+    ///   <item>Set the <c>Title</c> property to update the dock's display name.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// The <c>data</c> property is already assigned when this method is called and contains
+    /// the strongly-typed data passed to the page (e.g., via <c>PageDock.SwitchPage</c>).
+    /// If no data was provided, <c>data</c> will be <c>default(T)</c>.
+    /// </para>
+    /// <para>
+    /// Example workflow:
+    /// <list type="number">
+    ///   <item>Create UI elements (e.g., <c>new Label()</c>).</item>
+    ///   <item>Add them to the control hierarchy (<c>AddChild</c>).</item>
+    ///   <item>Bind UI elements to data (e.g., <c>label.Text = data.SomeProperty</c>).</item>
+    ///   <item>Connect signals (e.g., button <c>pressed</c> to a local method).</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// <strong>Important:</strong> Avoid long-running operations in this method.
+    /// Use <c>CallDeferred</c> for operations that require the scene tree to be ready.
+    /// </para>
+    /// </remarks>
     public abstract void Initialize();
 
+    /// <summary>
+    /// Initializes the <c>Page</c> with <c>data</c>.
+    /// </summary>
+    /// <remarks>
+    /// Used for dynamically spawning content like varying items and setting values.
+    /// <para>
+    /// This method ensures every bit of types and references is correct by:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item>Validating the editor context to prevent runtime execution</item>
+    ///   <item>Checking for a valid parent <c>PageDock</c> instance</item>
+    ///   <item>Verifying the plugin reference from the dock</item>
+    ///   <item>Performing type-safe data casting to <c>T</c></item>
+    /// </list>
+    /// <para>
+    /// The <c>Initialize()</c> call is wrapped in a try-catch block to ensure safe execution.
+    /// Any exceptions thrown during initialization are caught and logged via
+    /// <c>ExceptionHandler.ThrowUnexpectedException</c>.
+    /// </para>
+    /// Logs via <c>ExceptionHandler.ThrowInvalidPageDataException</c> if the data type is incorrect.
+    /// </remarks>
     public override void _Ready()
     {
         // Only run in editor context
@@ -90,7 +160,33 @@ public abstract partial class Page<T> : Control
         }
     }
 
-
+    /// <summary>
+    /// Sets up a file dialog for selecting scenes or other resources.
+    /// </summary>
+    /// <param name="title">The title of the dialog window.</param>
+    /// <param name="filter">File extension filter (e.g., "*.tscn").</param>
+    /// <param name="description">Human-readable description of the filter.</param>
+    /// <param name="OnSceneFilesSelected">Callback for when files are selected.</param>
+    /// <remarks>
+    /// <para>
+    /// Creates and configures an <c>EditorFileDialog</c> with the given parameters.
+    /// </para>
+    /// <para>
+    /// Validates:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item>Callback is not null</item>
+    ///   <item>Parent node exists</item>
+    /// </list>
+    /// <para>
+    /// Logs via <c>ExceptionHandler.ThrowNullReferenceException</c> if <c>OnSceneFilesSelected</c> is <c>null</c>.
+    /// </para>
+    /// Logs via <c>ExceptionHandler.ThrowMissingNodeException</c> if the page has no valid parent.
+    /// <para>
+    /// Any exceptions during dialog creation are caught and logged via
+    /// <c>ExceptionHandler.ThrowUnexpectedException</c>.
+    /// </para>
+    /// </remarks>
     protected void SetupFileDialog(string title, string filter, string description, EditorFileDialog.FilesSelectedEventHandler OnSceneFilesSelected)
     {
         if (OnSceneFilesSelected == null)

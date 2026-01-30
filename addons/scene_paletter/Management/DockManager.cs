@@ -23,10 +23,11 @@ namespace Addons.ScenePaletter.Management;
 /// <para>
 /// To automatically initialize a <c>PageDock</c> when the plugin starts:
 /// </para>
-/// <para>1. Add a <c>[page]</c> section to the config file</para>
-/// <para>2. Define an <c>initial_docks</c> dictionary</para>
-/// <para>3. Map <c>UIPosition</c> as <c>string</c> to page names</para>
-/// 
+/// <list type="number">
+/// <item>Add a <c>[page]</c> section to the config file</item>
+/// <item>Define an <c>initial_docks</c> dictionary</item>
+/// <item>Map <c>UIPosition</c> as <c>string</c> to page names</item>
+/// </list>
 /// <example>
 /// <code>
 /// [page]
@@ -168,7 +169,7 @@ public class DockManager : IDisposable
         if (!IsDockInstanced(position))
             return;
 
-        GetDockOrThrow(position, nameof(ReloadDock))?.Reload(data);
+        GetDockOrThrow(position, nameof(ReloadDock))?.ReloadPage(data);
     }
 
     /// <summary>

@@ -11,9 +11,11 @@ namespace Addons.ScenePaletter.Management;
 /// </summary>
 /// <remarks>
 /// <para>To add a new section:</para>
-/// <para>1. Add public properties for your config values</para>
-/// <para>2. Create a private <c>LoadYourSection()</c> method using the Get helpers</para>
-/// <para>3. Call it from <c>Init</c> inside the SafeExecute block</para>
+/// <list type="number">
+/// <item>Add public properties for your config values</item>
+/// <item>Create a private <c>LoadYourSection()</c> method using the Get helpers</item>
+/// <item>Call it from <c>Init</c> inside the SafeExecute block</item>
+/// </list>
 /// </remarks>
 public class ConfigLoader : IDisposable
 {

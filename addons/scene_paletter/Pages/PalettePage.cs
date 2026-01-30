@@ -103,7 +103,7 @@ public partial class PalettePage : Page<PalettePageData>
             }
 
             Palette.SavePalette(plugin, palette);
-            dock.Reload(null);
+            dock.ReloadPage(null);
         }
         catch (Exception ex)
         {
@@ -129,7 +129,7 @@ public partial class PalettePage : Page<PalettePageData>
             }
 
             Palette.DeletePalette(plugin, palette);
-            dock.Reload(null);
+            dock.ReloadPage(null);
         }
         catch (Exception ex)
         {

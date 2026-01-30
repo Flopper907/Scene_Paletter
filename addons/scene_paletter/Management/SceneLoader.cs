@@ -21,10 +21,11 @@ namespace Addons.ScenePaletter.Management;
 /// <para>
 /// To automatically load a <c>Page</c> and <c>Widget</c> when the plugin starts:
 /// </para>
-/// <para>1. Add a <c>[page]</c> section to the config file</para>
-/// <para>2. Define a <c>pages</c> and a <c>widgets</c> dictionary</para>
-/// <para>3. Map <c>Name</c> as <c>string</c> to <c>Path</c> as <c>string</c></para>
-/// 
+/// <list type="number">
+/// <item>Add a <c>[page]</c> section to the config file</item>
+/// <item>Define a <c>pages</c> and a <c>widgets</c> dictionary</item>
+/// <item>Map <c>Name</c> as <c>string</c> to <c>Path</c> as <c>string</c></item>
+/// </list>
 /// <example>
 /// Define your scenes and widgets in the plugin config file:
 /// <code>

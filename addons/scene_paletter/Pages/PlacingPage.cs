@@ -104,13 +104,13 @@ public partial class PlacingPage : Page<PlacingPageData>
     private void ReloadWithScrollSave()
     {
         data.savedScrollPosition = scrollContainer.ScrollVertical;
-        dock.Reload(data);
+        dock.ReloadPage(data);
     }
 
     private void ReloadWithoutScrollSave()
     {
         data.savedScrollPosition = 0;
-        dock.Reload(data);
+        dock.ReloadPage(data);
     }
 
     public void Select(int index)
