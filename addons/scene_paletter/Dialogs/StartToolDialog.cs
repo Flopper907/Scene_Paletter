@@ -1,5 +1,6 @@
 using Godot;
 using Addons.ScenePaletter.Core;
+using Addons.ScenePaletter.Tools;
 
 namespace Addons.ScenePaletter.Dialogs;
 
@@ -15,6 +16,7 @@ public partial class StartToolDialog : Page<object>
         if (!plugin.dockManager.IsDockInstanced(UIPosition.RightDockTopLeft))
         {
             plugin.dockManager.StartDock(UIPosition.RightDockTopLeft, "PalettePage");
+            ScenePreviewGenerator.ClearCache();
         }
         else
         {
