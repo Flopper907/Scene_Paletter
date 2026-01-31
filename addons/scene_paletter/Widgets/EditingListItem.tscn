@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://b7xsoqvo3anmq"]
 
-[ext_resource type="Texture2D" uid="uid://cfe4w361vwlvn" path="res://icon.svg" id="1_5t1tw"]
 [ext_resource type="Script" uid="uid://diygqe7vqeimv" path="res://addons/scene_paletter/Widgets/EditingListItem.cs" id="1_u6a6j"]
+[ext_resource type="Texture2D" uid="uid://bhrg0itorkf3w" path="res://addons/scene_paletter/Icons/Empty.svg" id="2_h7wtf"]
 [ext_resource type="Texture2D" uid="uid://cqqb6gcefm2eb" path="res://addons/scene_paletter/Icons/Delete.svg" id="3_h7wtf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqiuw"]
@@ -36,7 +36,7 @@ layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-texture = ExtResource("1_5t1tw")
+texture = ExtResource("2_h7wtf")
 expand_mode = 4
 stretch_mode = 5
 

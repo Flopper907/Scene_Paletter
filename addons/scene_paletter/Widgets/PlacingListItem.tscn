@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://c2pgo5wkq2ofi"]
 
 [ext_resource type="Script" uid="uid://cqxa0ww6malhc" path="res://addons/scene_paletter/Widgets/PlacingListItem.cs" id="1_2y3f2"]
-[ext_resource type="Texture2D" uid="uid://cfe4w361vwlvn" path="res://icon.svg" id="2_7dv16"]
+[ext_resource type="Texture2D" uid="uid://bhrg0itorkf3w" path="res://addons/scene_paletter/Icons/Empty.svg" id="2_2y3f2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqiuw"]
 bg_color = Color(1, 1, 1, 1)
@@ -37,7 +37,7 @@ layout_mode = 2
 texture_filter = 1
 layout_mode = 2
 size_flags_vertical = 3
-texture = ExtResource("2_7dv16")
+texture = ExtResource("2_2y3f2")
 expand_mode = 4
 stretch_mode = 5
 

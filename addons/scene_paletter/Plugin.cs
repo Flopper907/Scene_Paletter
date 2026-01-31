@@ -1,6 +1,7 @@
 using Godot;
 using Addons.ScenePaletter.Management;
 using Addons.ScenePaletter.Core;
+using Addons.ScenePaletter.Tools;
 
 namespace Addons.ScenePaletter;
 
@@ -49,6 +50,7 @@ public partial class Plugin : EditorPlugin
     /// </summary>
     public override void _Ready()
     {
+        ScenePreviewGenerator.ClearCache();
         config = new ConfigLoader();
         ExceptionHandler.SafeExecute(() => config.Init("res://addons/scene_paletter/plugin.cfg"), nameof(config.Init), nameof(_Ready));
 
