@@ -3,9 +3,60 @@ using System.Collections.Generic;
 using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
 using Addons.ScenePaletter.Core;
+using Addons.ScenePaletter.Dialogs;
 
 namespace Addons.ScenePaletter.Pages;
 
+/// <summary>
+/// Data passed to the <c>EditingPage</c> for palette editing.
+/// </summary>
+public struct EditingPageData
+{
+    /// <summary>
+    /// Initializes editing page data with a palette to edit.
+    /// </summary>
+    /// <param name="palette">Palette to edit</param>
+    public EditingPageData(Palette palette)
+    {
+        this.palette = palette;
+        old = palette.Copy();
+        selectedElements = new List<int>();
+        savedScrollPosition = 0;
+    }
+    /// <summary>Current palette being edited</summary>
+    public Palette palette;
+
+    /// <summary>Original palette state for change detection</summary>
+    public Palette old;
+
+    /// <summary>List of selected scene indices</summary>
+    public List<int> selectedElements;
+
+    /// <summary>Whether changes have been made</summary>
+    public bool changed;
+
+    /// <summary>Saved scroll position for view restoration</summary>
+    public int savedScrollPosition;
+}
+
+
+/// <summary>
+/// Page for editing palette contents - adding, removing, and selecting scenes.
+/// Displays all scenes in the palette with preview images and provides controls
+/// for managing scene entries and palette metadata.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Features:
+/// <list type="bullet">
+///   <item>Multi-selection of scenes for batch deletion</item>
+///   <item>Scene preview generation with configurable resolution</item>
+///   <item>Scroll position preservation across reloads</item>
+///   <item>Dynamic column adjustment for grid layout</item>
+///   <item>Change tracking against original palette state</item>
+/// </list>
+/// </para>
+/// </remarks>
 [Tool]
 public partial class EditingPage : Page<EditingPageData>
 {
@@ -13,6 +64,10 @@ public partial class EditingPage : Page<EditingPageData>
     [Export] public LineEdit titleLineEdit;
     [Export] public ScrollContainer scrollContainer;
 
+    /// <summary>
+    /// Initializes the editing view with the current palette's scenes.
+    /// Generates preview images for each scene and sets up interaction callbacks.
+    /// </summary>
     public override void Initialize()
     {
         if (data.palette == null)
@@ -67,7 +122,9 @@ public partial class EditingPage : Page<EditingPageData>
 
                 sceneListView.AddChild(item);
 
-                item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index), () => Delete(index));
+                item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index),
+                    () => ShowDeleteDialog(index)
+                );
                 ScenePreviewGenerator.GeneratePreview(
                     scene,
                     plugin.config.PreviewResolution,
@@ -86,11 +143,35 @@ public partial class EditingPage : Page<EditingPageData>
         CallDeferred(MethodName.ApplyScrollPosition);
     }
 
+    /// <summary>
+    /// Shows a confirmation dialog before deleting a scene from the palette.
+    /// </summary>
+    /// <param name="index">Index of the scene to delete</param>
+    public void ShowDeleteDialog(int index)
+    {
+        DeleteDialogData dialogData = new DeleteDialogData(
+            cancelAction: () =>
+            {
+                plugin.dockManager.CloseDock(UIPosition.Dialog);
+            },
+            deleteAction: () =>
+            {
+                plugin.dockManager.CloseDock(UIPosition.Dialog);
+                Delete(index);
+            }
+        );
+
+        plugin.dockManager.StartDock(UIPosition.Dialog, "DeleteDialog", dialogData);
+        plugin.dockManager.SetDialogSize(new Vector2I(400, 200));
+    }
+
+    /// <summary>
+    /// Restores the saved scroll position after the view is loaded.
+    /// </summary>
     private async void ApplyScrollPosition()
     {
         if (scrollContainer != null && data.savedScrollPosition >= 0)
         {
-            // Wait for the next frame to ensure layout is complete
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
             if (IsInstanceValid(scrollContainer))
@@ -100,24 +181,38 @@ public partial class EditingPage : Page<EditingPageData>
         }
     }
 
+    /// <summary>
+    /// Reloads the page while preserving the current scroll position.
+    /// </summary>
     private void ReloadWithScrollSave()
     {
         data.savedScrollPosition = scrollContainer.ScrollVertical;
         dock.ReloadPage(data);
     }
 
+    /// <summary>
+    /// Reloads the page and resets scroll to the top.
+    /// </summary>
     private void ReloadWithoutScrollSave()
     {
         data.savedScrollPosition = 0;
         dock.ReloadPage(data);
     }
 
+    /// <summary>
+    /// Updates the palette name and refreshes the view.
+    /// </summary>
+    /// <param name="text">New palette name</param>
     public void SetTitle(string text)
     {
         data.palette.Name = text;
         ReloadWithScrollSave();
     }
 
+    /// <summary>
+    /// Toggles selection state for a scene item.
+    /// </summary>
+    /// <param name="index">Index of the scene to toggle</param>
     public void ToggleSelect(int index)
     {
         if (data.selectedElements.Contains(index))
@@ -131,9 +226,15 @@ public partial class EditingPage : Page<EditingPageData>
         ReloadWithScrollSave();
     }
 
+    /// <summary>
+    /// Deletes the specified scene and all selected scenes from the palette.
+    /// </summary>
+    /// <param name="index">Index of the primary scene to delete</param>
     public void Delete(int index)
     {
         List<string> newPaths = [.. data.palette.Paths];
+
+        if (index < 0 || index > newPaths.Count) return;
 
         newPaths.Remove(data.palette.Paths[index]);
         for (int i = 0; i < data.selectedElements.Count; i++)
@@ -145,39 +246,58 @@ public partial class EditingPage : Page<EditingPageData>
         ReloadWithoutScrollSave();
     }
 
+    /// <summary>
+    /// Discards changes and returns to placing mode with the original palette state.
+    /// </summary>
     public void Discard()
     {
         dock.SwitchPage("PlacingPage", new PlacingPageData(data.old));
     }
 
+    /// <summary>
+    /// Saves the palette to disk and switches to placing mode.
+    /// </summary>
     public void Save()
     {
         Palette.SavePalette(plugin, data.palette);
         dock.SwitchPage("PlacingPage", new PlacingPageData(data.palette));
     }
 
+    /// <summary>
+    /// Opens a file dialog to add new scenes to the palette.
+    /// </summary>
     public void Add()
     {
         SetupFileDialog("Select Scene Files", "*.tscn", "Godot Scene Files", OnSceneFilesSelected);
     }
 
+    /// <summary>
+    /// Increases the number of columns in the grid layout.
+    /// </summary>
     public void AddColumn()
     {
         plugin.config.AddColumn();
         ReloadWithoutScrollSave();
     }
 
+    /// <summary>
+    /// Decreases the number of columns in the grid layout.
+    /// </summary>
     public void RemoveColumn()
     {
         plugin.config.RemoveColumn();
         ReloadWithoutScrollSave();
     }
 
+    /// <summary>
+    /// Callback invoked when scene files are selected in the file dialog.
+    /// Converts file paths to resource UIDs and adds them to the palette.
+    /// </summary>
+    /// <param name="paths">Array of selected scene file paths</param>
     protected void OnSceneFilesSelected(string[] paths)
     {
         foreach (string path in paths)
         {
-            // Get the UID for the scene file
             long uid = ResourceLoader.GetResourceUid(path);
             string uidString = ResourceUid.IdToText(uid);
             if (!data.palette.Paths.Contains(uidString))
@@ -188,21 +308,4 @@ public partial class EditingPage : Page<EditingPageData>
 
         ReloadWithoutScrollSave();
     }
-}
-
-
-public struct EditingPageData
-{
-    public EditingPageData(Palette palette)
-    {
-        this.palette = palette;
-        old = palette.Copy();
-        selectedElements = new List<int>();
-        savedScrollPosition = 0;
-    }
-    public Palette palette;
-    public Palette old;
-    public List<int> selectedElements;
-    public bool changed = false;
-    public int savedScrollPosition;
 }

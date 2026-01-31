@@ -7,6 +7,68 @@ using System;
 
 namespace Addons.ScenePaletter.Pages;
 
+/// <summary>
+/// Data passed to the <c>PlacingPage</c> for scene placement operations.
+/// </summary>
+public struct PlacingPageData
+{
+    /// <summary>
+    /// Initializes placing page data with default values.
+    /// </summary>
+    public PlacingPageData()
+    {
+        currentElement = 0;
+        previousElement = -1;
+        lastSpawned = null;
+        previousSpawned = null;
+        savedScrollPosition = 0;
+    }
+
+    /// <summary>
+    /// Initializes placing page data with a specific palette.
+    /// </summary>
+    /// <param name="palette">Palette to use for placing scenes</param>
+    public PlacingPageData(Palette palette)
+    {
+        this.palette = palette;
+        currentElement = 0;
+        previousElement = -1;
+        lastSpawned = null;
+        previousSpawned = null;
+        savedScrollPosition = 0;
+    }
+
+    /// <summary>Active palette for scene placement</summary>
+    public Palette palette;
+
+    /// <summary>Index of currently selected scene</summary>
+    public int currentElement;
+
+    /// <summary>Index of previously selected scene</summary>
+    public int previousElement;
+
+    /// <summary>Last spawned node instance for position calculation</summary>
+    public Node lastSpawned;
+
+    /// <summary>Previously spawned node instance for position extrapolation</summary>
+    public Node previousSpawned;
+
+    /// <summary>Saved scroll position for view restoration</summary>
+    public int savedScrollPosition;
+}
+
+/// <summary>
+/// Page for placing scenes from a palette into the editor.
+/// Displays all scenes in the palette with previews and handles scene instantiation
+/// with automatic position extrapolation based on previously placed nodes.
+/// </summary>
+/// <remarks>
+/// <para>
+/// The placement system tracks the last two placed nodes to calculate
+/// position offsets, allowing for rapid sequential placement with predictable spacing.
+/// Supports both 2D and 3D scenes with appropriate position handling for each.
+/// </para>
+/// </remarks>
 [Tool]
 public partial class PlacingPage : Page<PlacingPageData>
 {
@@ -14,6 +76,10 @@ public partial class PlacingPage : Page<PlacingPageData>
     [Export] public Label titleLabel;
     [Export] public ScrollContainer scrollContainer;
 
+    /// <summary>
+    /// Initializes the placing view with the current palette's scenes.
+    /// Generates preview images and sets up selection callbacks.
+    /// </summary>
     public override void Initialize()
     {
         if (data.palette == null)
@@ -87,6 +153,9 @@ public partial class PlacingPage : Page<PlacingPageData>
         CallDeferred(MethodName.ApplyScrollPosition);
     }
 
+    /// <summary>
+    /// Restores the saved scroll position after the view is loaded.
+    /// </summary>
     private async void ApplyScrollPosition()
     {
         if (scrollContainer != null && data.savedScrollPosition >= 0)
@@ -101,18 +170,28 @@ public partial class PlacingPage : Page<PlacingPageData>
         }
     }
 
+    /// <summary>
+    /// Reloads the page while preserving the current scroll position.
+    /// </summary>
     private void ReloadWithScrollSave()
     {
         data.savedScrollPosition = scrollContainer.ScrollVertical;
         dock.ReloadPage(data);
     }
 
+    /// <summary>
+    /// Reloads the page and resets scroll to the top.
+    /// </summary>
     private void ReloadWithoutScrollSave()
     {
         data.savedScrollPosition = 0;
         dock.ReloadPage(data);
     }
 
+    /// <summary>
+    /// Selects a scene from the palette for placement.
+    /// </summary>
+    /// <param name="index">Index of the scene to select</param>
     public void Select(int index)
     {
         if (index < 0 || index >= data.palette.Paths.Count)
@@ -126,6 +205,9 @@ public partial class PlacingPage : Page<PlacingPageData>
         ReloadWithScrollSave();
     }
 
+    /// <summary>
+    /// Switches to editing mode for the current palette.
+    /// </summary>
     public void Edit()
     {
         if (data.palette == null)
@@ -137,23 +219,50 @@ public partial class PlacingPage : Page<PlacingPageData>
         dock.SwitchPage("EditingPage", new EditingPageData(data.palette));
     }
 
+    /// <summary>
+    /// Returns to the palette selection page.
+    /// </summary>
     public void Back()
     {
         dock.SwitchPage("PalettePage", null);
     }
 
+    /// <summary>
+    /// Increases the number of columns in the grid layout.
+    /// </summary>
     public void AddColumn()
     {
         plugin.config.AddColumn();
         ReloadWithoutScrollSave();
     }
 
+    /// <summary>
+    /// Decreases the number of columns in the grid layout.
+    /// </summary>
     public void RemoveColumn()
     {
         plugin.config.RemoveColumn();
         ReloadWithoutScrollSave();
     }
 
+    /// <summary>
+    /// Instantiates the selected scene and places it in the editor with automatic position calculation.
+    /// Extrapolates position based on the last two placed nodes for predictable spacing.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Position calculation:
+    /// <list type="bullet">
+    ///   <item>First placement: Uses parent's global position</item>
+    ///   <item>Second placement: Uses last placed node's position</item>
+    ///   <item>Subsequent placements: Extrapolates using formula: 2 * last - previous</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// Handles both Node2D and Node3D scenes with appropriate position types.
+    /// Marks the scene as unsaved after successful placement.
+    /// </para>
+    /// </remarks>
     public void Place()
     {
         try
@@ -312,6 +421,11 @@ public partial class PlacingPage : Page<PlacingPageData>
         }
     }
 
+    /// <summary>
+    /// Retrieves the parent node for placement from the editor's current selection.
+    /// Uses the edited scene root if no node is selected.
+    /// </summary>
+    /// <returns>Parent node for placing scenes, or null if unavailable</returns>
     private Node GetParentNodeFromEditor()
     {
         try
@@ -353,34 +467,4 @@ public partial class PlacingPage : Page<PlacingPageData>
             return null;
         }
     }
-}
-
-public struct PlacingPageData
-{
-
-    public PlacingPageData()
-    {
-        currentElement = 0;
-        previousElement = -1;
-        lastSpawned = null;
-        previousSpawned = null;
-        savedScrollPosition = 0;
-    }
-
-    public PlacingPageData(Palette palette)
-    {
-        this.palette = palette;
-        currentElement = 0;
-        previousElement = -1;
-        lastSpawned = null;
-        previousSpawned = null;
-        savedScrollPosition = 0;
-    }
-
-    public Palette palette;
-    public int currentElement = 0;
-    public int previousElement = -1;
-    public Node lastSpawned;
-    public Node previousSpawned;
-    public int savedScrollPosition;
 }

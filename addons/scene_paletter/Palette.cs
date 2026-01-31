@@ -1,20 +1,33 @@
 using Addons.ScenePaletter.Tools;
-using Godot;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Addons.ScenePaletter;
 
+/// <summary>
+/// Represents a collection of scene paths that can be saved, loaded, and managed.
+/// Palettes are serialized to JSON and identified by unique IDs.
+/// </summary>
 [Serializable]
 public class Palette
 {
+    /// <summary>List of scene resource UIDs included in this palette</summary>
     public List<string> Paths { get; set; } = new List<string>();
+
+    /// <summary>Display name of the palette</summary>
     public string Name { get; set; } = "Untitled";
+
+    /// <summary>Sort position for palette ordering</summary>
     public int Position { get; set; }
+
+    /// <summary>Unique identifier for this palette (not serialized)</summary>
     [JsonIgnore]
     public string UID { get; set; }
 
+    /// <summary>
+    /// Returns a string representation of the palette for debugging.
+    /// </summary>
     public override string ToString()
     {
         string s = "Paths{";
@@ -28,6 +41,12 @@ public class Palette
         return s;
     }
 
+    /// <summary>
+    /// Creates a new empty palette with a generated unique ID.
+    /// </summary>
+    /// <param name="plugin">Plugin instance for accessing configuration</param>
+    /// <param name="position">Sort position for the new palette</param>
+    /// <returns>New palette instance with generated UID</returns>
     public static Palette CreateEmptyPalette(Plugin plugin, int position)
     {
         Palette palette = new Palette();
@@ -37,6 +56,11 @@ public class Palette
         return palette;
     }
 
+    /// <summary>
+    /// Loads all palettes from the configured palette directory.
+    /// </summary>
+    /// <param name="plugin">Plugin instance for accessing configuration</param>
+    /// <returns>List of palettes sorted by position</returns>
     public static List<Palette> LoadPalettes(Plugin plugin)
     {
         List<Palette> palettes = new List<Palette>();
@@ -52,16 +76,30 @@ public class Palette
         return palettes;
     }
 
+    /// <summary>
+    /// Saves the palette to disk as JSON.
+    /// </summary>
+    /// <param name="plugin">Plugin instance for accessing configuration</param>
+    /// <param name="palette">Palette to save</param>
     public static void SavePalette(Plugin plugin, Palette palette)
     {
         SaveLoad.Save(palette, plugin.config.PalettePath + palette.UID + plugin.config.FileExtension);
     }
 
+    /// <summary>
+    /// Deletes the palette file from disk.
+    /// </summary>
+    /// <param name="plugin">Plugin instance for accessing configuration</param>
+    /// <param name="palette">Palette to delete</param>
     public static void DeletePalette(Plugin plugin, Palette palette)
     {
         SaveLoad.Delete(plugin.config.PalettePath + palette.UID + plugin.config.FileExtension);
     }
 
+    /// <summary>
+    /// Creates a deep copy of this palette.
+    /// </summary>
+    /// <returns>New palette instance with copied data</returns>
     public Palette Copy()
     {
         return new Palette
@@ -73,6 +111,11 @@ public class Palette
         };
     }
 
+    /// <summary>
+    /// Compares palettes by UID only.
+    /// </summary>
+    /// <param name="other">Palette to compare with</param>
+    /// <returns>True if UIDs match, false otherwise</returns>
     public bool EqualsID(Palette other)
     {
         // Compare UID if both have it set
@@ -84,6 +127,11 @@ public class Palette
         return false;
     }
 
+    /// <summary>
+    /// Compares palettes by all properties (name, position, paths).
+    /// </summary>
+    /// <param name="obj">Object to compare with</param>
+    /// <returns>True if all properties match, false otherwise</returns>
     public override bool Equals(object obj)
     {
         if (obj == null || GetType() != obj.GetType())
@@ -116,6 +164,10 @@ public class Palette
         return true;
     }
 
+    /// <summary>
+    /// Generates a hash code based on UID or all properties if UID is not set.
+    /// </summary>
+    /// <returns>Hash code for this palette</returns>
     public override int GetHashCode()
     {
         // If UID is set, use it for hash code

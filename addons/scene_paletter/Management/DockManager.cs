@@ -124,7 +124,10 @@ public class DockManager : IDisposable
     private PageDock GetDockOrThrow(UIPosition position, string caller)
     {
         if (!IsDockInstanced(position))
+        {
             ExceptionHandler.ThrowDockNotFoundException(position, caller);
+            return null;
+        }
 
         return docks[position];
     }
@@ -145,6 +148,8 @@ public class DockManager : IDisposable
         EnsureInitialized(nameof(ChangeDockPosition));
 
         var dock = GetDockOrThrow(from, nameof(ChangeDockPosition));
+
+        if (dock == null) return;
 
         if (IsDockInstanced(to))
             CloseDock(to);
@@ -169,7 +174,9 @@ public class DockManager : IDisposable
         if (!IsDockInstanced(position))
             return;
 
-        GetDockOrThrow(position, nameof(ReloadDock))?.ReloadPage(data);
+        var dock = GetDockOrThrow(position, nameof(ReloadDock));
+        if (dock == null) return;
+        dock.ReloadPage(data);
     }
 
     /// <summary>
@@ -217,6 +224,8 @@ public class DockManager : IDisposable
 
         var dock = GetDockOrThrow(position, nameof(CloseDock));
 
+        if (dock == null) return;
+
         RemoveDockFromPosition(dock, position);
         dock.QueueFree();
         docks[position] = null;
@@ -238,7 +247,7 @@ public class DockManager : IDisposable
 
         if (!GodotObject.IsInstanceValid(dialogWindow))
         {
-            ExceptionHandler.ThrowMissingNodeException(dock.GetPath(), nameof(SetDialogSize));
+            //ExceptionHandler.ThrowMissingNodeException(dock.GetPath(), nameof(SetDialogSize));
             return;
         }
 
@@ -334,6 +343,7 @@ public class DockManager : IDisposable
 
         EditorInterface.Singleton.GetBaseControl().AddChild(window);
         window.PopupCentered();
+        dialogWindow = window;
     }
 
     /// <summary>
@@ -346,8 +356,8 @@ public class DockManager : IDisposable
     {
         if (GodotObject.IsInstanceValid(dialogWindow))
         {
+            dialogWindow.RemoveChild(docks[UIPosition.Dialog]);
             dialogWindow.QueueFree();
-            dialogWindow = null;
         }
     }
 
