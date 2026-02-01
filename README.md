@@ -5,6 +5,9 @@ A Godot 4.5 editor plugin for rapid scene placement using customizable palettes.
 ![Scene Paletter Demo](screenshots/demo.gif)
 *Quick scene placement with automatic position extrapolation*
 
+
+**Note:** Demo uses assets from [Kenney Tiny Battle Pack](https://kenney.nl/assets/tiny-battle) (Creative Commons CC0).
+
 ---
 
 ## Features
@@ -300,6 +303,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Acknowledgments
 
 - Built with [Godot Engine](https://godotengine.org/)
+- Demo screenshots use [Kenney Tiny Battle Pack](https://kenney.nl/assets/tiny-battle) (Creative Commons CC0)
 - Inspired by palette-based workflows in level editors
 
 ---
