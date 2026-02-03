@@ -68,6 +68,38 @@ public static class SaveLoad
     }
 
     /// <summary>
+    /// Ensures that a directory exists at the specified path, creating it if necessary.
+    /// </summary>
+    /// <param name="path">Directory path to ensure exists (will be globalized).</param>
+    /// <returns>True if directory exists or was created successfully, false otherwise.</returns>
+    /// <remarks>
+    /// <para>
+    /// Creates the directory and any necessary parent directories if they don't exist.
+    /// If the directory already exists, returns true without modification.
+    /// </para>
+    /// <para>Logs via <c>ExceptionHandler.ThrowUnexpectedException</c> if directory creation fails.</para>
+    /// </remarks>
+    public static bool EnsureDirectoryExists(string path)
+    {
+        string globalPath = ProjectSettings.GlobalizePath(path);
+
+        try
+        {
+            if (!Directory.Exists(globalPath))
+            {
+                Directory.CreateDirectory(globalPath);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandler.ThrowUnexpectedException(ex, nameof(EnsureDirectoryExists));
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Loads data from a JSON file, creating a new instance if the file doesn't exist.
     /// </summary>
     /// <typeparam name="T">Type of data to load. Must have a parameterless constructor.</typeparam>

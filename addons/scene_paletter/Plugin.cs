@@ -54,6 +54,8 @@ public partial class Plugin : EditorPlugin
         config = new ConfigLoader();
         ExceptionHandler.SafeExecute(() => config.Init("res://addons/scene_paletter/plugin.cfg"), nameof(config.Init), nameof(_Ready));
 
+        SaveLoad.EnsureDirectoryExists(config.PalettePath);
+
         sceneLoader = new SceneLoader();
         ExceptionHandler.SafeExecute(() => sceneLoader.Init(this), nameof(sceneLoader.Init), nameof(_Ready));
 

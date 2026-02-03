@@ -1,56 +1,54 @@
 [gd_scene load_steps=4 format=3 uid="uid://bgiqhjxdjrsv7"]
 
-[ext_resource type="PackedScene" uid="uid://datcohi2w3wc4" path="res://addons/scene_paletter/PageBase.tscn" id="1_qq8p4"]
+[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/scene_paletter/PageBase.tscn" id="1_qq8p4"]
 [ext_resource type="Script" uid="uid://c80gkftifl0to" path="res://addons/scene_paletter/Dialogs/DeleteDialog.cs" id="2_a600t"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_qq8p4"]
 font_size = 30
 
 [node name="PageBase" node_paths=PackedStringArray("cancelButton", "deleteButton") instance=ExtResource("1_qq8p4")]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
-grow_horizontal = 2
-grow_vertical = 2
 script = ExtResource("2_a600t")
-cancelButton = NodePath("Footer/Button2")
-deleteButton = NodePath("Footer/Button")
+cancelButton = NodePath("VBoxContainer/Footer/HBoxContainer/Button2")
+deleteButton = NodePath("VBoxContainer/Footer/HBoxContainer/Button")
 
-[node name="Label" parent="Header" index="0"]
+[node name="Label" parent="VBoxContainer/Header" index="0"]
 text = "Are you sure?"
 label_settings = SubResource("LabelSettings_qq8p4")
 
-[node name="Label" type="Label" parent="Content" index="0"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "It will delete it permanently!"
-
-[node name="Footer" parent="." index="2"]
-grow_vertical = 0
-
-[node name="Button2" type="Button" parent="Footer" index="0"]
-modulate = Color(0.4182377, 0.6019757, 1, 1)
+[node name="Label" type="Label" parent="VBoxContainer/Content" index="0"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.3
-anchor_right = 0.6
-anchor_bottom = 1.0
-offset_left = 1.0
-offset_top = 1.0
-offset_right = -1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -11.5
+offset_right = 100.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "It will delete it permanently!"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Footer" index="0"]
+layout_mode = 2
+
+[node name="Button2" type="Button" parent="VBoxContainer/Footer/HBoxContainer" index="0"]
+modulate = Color(0.4182377, 0.6019757, 1, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
 text = "Cancel"
 
-[node name="Button" type="Button" parent="Footer" index="1"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.7
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 1.0
-offset_top = 1.0
-offset_right = -1.0
-offset_bottom = -1.0
+[node name="Spacer2" type="Control" parent="VBoxContainer/Footer/HBoxContainer" index="1"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.1
+
+[node name="Button" type="Button" parent="VBoxContainer/Footer/HBoxContainer" index="2"]
+modulate = Color(1, 0.44368404, 0.37509546, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
 text = "Delete"
