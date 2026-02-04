@@ -2,23 +2,19 @@
 
 A Godot 4.5 editor plugin for rapid scene placement using customizable palettes. Perfect for level design, prototyping, and any workflow requiring frequent scene instantiation.
 
-![Scene Paletter Demo](screenshots/demo.gif)
-*Quick scene placement with automatic position extrapolation*
-
-
 **Note:** Demo uses assets from [Kenney Tiny Battle Pack](https://kenney.nl/assets/tiny-battle) (Creative Commons CC0).
 
 ---
 
 ## Features
 
-- **🎨 Multiple Palettes** - Organize scenes into collections for different workflows
-- **🔄 2D & 3D Support** - Seamlessly handles both Node2D and Node3D scenes
-- **📍 Smart Placement** - Automatic position extrapolation based on previously placed nodes
-- **👁️ Live Previews** - Real-time preview generation for all palette scenes
-- **⚡ Fast Workflow** - Keyboard shortcuts and streamlined UI for rapid placement
-- **🛠️ Easy Management** - Add, remove, and organize scenes with intuitive controls
-- **📝 Fully Documented** - Complete XML documentation for all classes and methods
+- **Multiple Palettes** - Organize scenes into collections for different workflows
+- **2D & 3D Support** - Seamlessly handles both Node2D and Node3D scenes
+- **Smart Placement** - Automatic position extrapolation based on previously placed nodes
+- **Live Previews** - Real-time preview generation for all palette scenes
+- **Fast Workflow** - Keyboard shortcuts and streamlined UI for rapid placement
+- **Easy Management** - Add, remove, and organize scenes with intuitive controls
+- **Fully Documented** - Complete XML documentation for all classes and methods
 
 ---
 
@@ -29,12 +25,16 @@ A Godot 4.5 editor plugin for rapid scene placement using customizable palettes.
 2. Go to **AssetLib** tab
 3. Search for "Scene Paletter"
 4. Click **Download** → **Install**
-5. Enable the plugin in **Project Settings → Plugins**
+5. Build the project
+   - Required on first installation to compile C# code
+6. Enable the plugin in **Project Settings → Plugins**
 
 ### Manual Installation
 1. Download the latest release from [Releases](https://github.com/Flopper907/Scene_Paletter/releases)
 2. Extract the `addons/scene_paletter` folder to your project's `addons/` directory
-3. Enable the plugin in **Project Settings → Plugins**
+3. Build the project
+   - Required on first installation to compile C# code
+4. Enable the plugin in **Project Settings → Plugins**
 
 ---
 
@@ -47,7 +47,7 @@ A Godot 4.5 editor plugin for rapid scene placement using customizable palettes.
    - Default location: Bottom panel or right dock area
 
 2. **Create a Palette**
-   - Click the **"Create Palette"** button
+   - Click the **"Create New"** button
    - Give it a descriptive name (e.g., "Level Objects", "Enemies", "Props")
 
 3. **Add Scenes**
@@ -75,7 +75,7 @@ This creates predictable, evenly-spaced placement perfect for laying out level e
 ### Managing Palettes
 
 **Create Palette**
-- Click **"Create Palette"** on the palette selection page
+- Click **"Create New"** on the palette selection page
 - Automatically assigns a unique ID
 
 **Edit Palette**
@@ -127,6 +127,14 @@ This creates predictable, evenly-spaced placement perfect for laying out level e
 ## Configuration
 
 Edit `addons/scene_paletter/plugin.cfg` to customize:
+
+**Note:** After changing `plugin.cfg`, you must reload the plugin:
+
+1. Go to **Project Settings → Plugins**
+2. Disable Scene Paletter
+3. Enable Scene Paletter again
+4. Configuration changes will take effect
+
 ```ini
 [file]
 palette_path = "res://addons/scene_paletter/palettes/"
@@ -310,13 +318,12 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Links
 
-- **Asset Library**: [Scene Paletter on Godot Asset Library](#) *(link after publishing)*
+- **Asset Library**: [Scene Paletter on Godot Asset Library](https://godotengine.org/asset-library/asset/4730)
 - **Issues**: [Report bugs or request features](https://github.com/Flopper907/Scene_Paletter/issues)
-- **Discussions**: [Ask questions or share workflows](https://github.com/Flopper907/Scene_Paletter/discussions)
 
 ---
 
-**Made with ❤️ by [Flopper907](https://github.com/Flopper907)**
+**Made with <3 by [Flopper907](https://github.com/Flopper907)**
 
 ```
 ---

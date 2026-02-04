@@ -45,7 +45,7 @@ public abstract partial class Page<T> : Control
     protected T data;
     protected PageDock dock;
     protected Plugin plugin;
-
+    private static string fileDialogDir;
     public string Title { get; protected set; }
 
     /// <summary>
@@ -215,10 +215,20 @@ public abstract partial class Page<T> : Control
             fileDialog.Access = EditorFileDialog.AccessEnum.Resources;
             fileDialog.Title = title; // Use the parameter!
 
+            if (string.IsNullOrEmpty(fileDialogDir) || !DirAccess.DirExistsAbsolute(fileDialogDir))
+            {
+                fileDialogDir = "res://";
+            }
+            fileDialog.CurrentDir = fileDialogDir;
+
             // Use the parameters properly
             fileDialog.AddFilter(filter, description);
 
             fileDialog.FilesSelected += OnSceneFilesSelected;
+            fileDialog.FilesSelected += (string[] s) =>
+            {
+                fileDialogDir = fileDialog.CurrentDir;
+            };
 
             parent.AddChild(fileDialog);
             fileDialog.PopupCentered(new Vector2I(800, 600));
