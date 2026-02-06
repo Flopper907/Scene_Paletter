@@ -296,6 +296,7 @@ public partial class EditingPage : Page<EditingPageData>
     /// <param name="paths">Array of selected scene file paths</param>
     protected void OnSceneFilesSelected(string[] paths)
     {
+        if (paths == null) return;
         foreach (string path in paths)
         {
             long uid = ResourceLoader.GetResourceUid(path);
