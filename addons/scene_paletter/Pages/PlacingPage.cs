@@ -346,7 +346,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 
                 // Apply calculated position
                 instance2D.GlobalPosition = spawnPos;
-                instance2D.Rotation = spawnRot;
+                instance2D.GlobalRotation = spawnRot;
 
                 // Update spawn tracking
                 data.previousSpawned = data.lastSpawned;
