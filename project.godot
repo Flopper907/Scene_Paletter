@@ -17,6 +17,10 @@ config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 
 project/assembly_name="Node-Palatter"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/scene_paletter/plugin.cfg")
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

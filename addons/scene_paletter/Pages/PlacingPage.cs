@@ -306,17 +306,21 @@ public partial class PlacingPage : Page<PlacingPageData>
             {
                 // Handle positioning
                 Vector2 spawnPos;
+                float spawnRot;
                 if (data.lastSpawned == null)
                 {
                     spawnPos = parent2D.GlobalPosition; // First spawn or reset
+                    spawnRot = parent2D.GlobalRotation;
                 }
                 else if (data.previousSpawned == null)
                 {
                     spawnPos = ((Node2D)data.lastSpawned).GlobalPosition; // Only last exists
+                    spawnRot = ((Node2D)data.lastSpawned).GlobalRotation;
                 }
                 else
                 {
                     spawnPos = 2f * ((Node2D)data.lastSpawned).GlobalPosition - ((Node2D)data.previousSpawned).GlobalPosition;
+                    spawnRot = 2f * ((Node2D)data.lastSpawned).GlobalRotation - ((Node2D)data.previousSpawned).GlobalRotation;
                 }
 
                 // Add to tree before positioning
@@ -342,6 +346,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 
                 // Apply calculated position
                 instance2D.GlobalPosition = spawnPos;
+                instance2D.Rotation = spawnRot;
 
                 // Update spawn tracking
                 data.previousSpawned = data.lastSpawned;
@@ -352,17 +357,21 @@ public partial class PlacingPage : Page<PlacingPageData>
             {
                 // Handle positioning
                 Vector3 spawnPos;
+                Vector3 spawnRot;
                 if (data.lastSpawned == null)
                 {
                     spawnPos = parent3D.GlobalPosition; // First spawn or reset
+                    spawnRot = parent3D.GlobalRotation;
                 }
                 else if (data.previousSpawned == null)
                 {
                     spawnPos = ((Node3D)data.lastSpawned).GlobalPosition; // Only last exists
+                    spawnRot = ((Node3D)data.lastSpawned).GlobalRotation;
                 }
                 else
                 {
                     spawnPos = 2f * ((Node3D)data.lastSpawned).GlobalPosition - ((Node3D)data.previousSpawned).GlobalPosition;
+                    spawnRot = 2f * ((Node3D)data.lastSpawned).GlobalRotation - ((Node3D)data.previousSpawned).GlobalRotation;
                 }
 
                 // Add to tree before positioning
@@ -388,6 +397,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 
                 // Apply calculated position
                 instance3D.GlobalPosition = spawnPos;
+                instance3D.GlobalRotation = spawnRot;
 
                 // Update spawn tracking
                 data.previousSpawned = data.lastSpawned;
