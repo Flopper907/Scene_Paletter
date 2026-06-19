@@ -1,6 +1,6 @@
 # Scene Paletter
 
-A Godot 4.5 editor plugin for rapid scene placement using customizable palettes. Perfect for level design, prototyping, and any workflow requiring frequent scene instantiation.
+A Godot 4.7 editor plugin for rapid scene placement using customizable palettes. Perfect for level design, prototyping, and any workflow requiring frequent scene instantiation.
 
 **Note:** Demo uses assets from [Kenney Tiny Battle Pack](https://kenney.nl/assets/tiny-battle) (Creative Commons CC0).
 
@@ -10,7 +10,7 @@ A Godot 4.5 editor plugin for rapid scene placement using customizable palettes.
 
 - **Multiple Palettes** - Organize scenes into collections for different workflows
 - **2D & 3D Support** - Seamlessly handles both Node2D and Node3D scenes
-- **Smart Placement** - Automatic position extrapolation based on previously placed nodes
+- **Smart Placement** - Automatic position and rotation extrapolation based on previously placed nodes
 - **Live Previews** - Real-time preview generation for all palette scenes
 - **Fast Workflow** - Keyboard shortcuts and streamlined UI for rapid placement
 - **Easy Management** - Add, remove, and organize scenes with intuitive controls
@@ -280,7 +280,7 @@ See [ConfigLoader.cs](addons/scene_paletter/Management/ConfigLoader.cs) for exam
 Built in **1 Month** as a learning project and for building a template to easily build plugins.
 
 ### Tech Stack
-- **Language**: C# (Godot 4.5)
+- **Language**: C# (Godot 4.7)
 - **Architecture**: Modular, documented, extensible
 - **Error Handling**: Comprehensive logging without exceptions
 - **Preview System**: Async generation with caching
@@ -297,7 +297,7 @@ Contributions welcome! Please:
 1. Fork the repository
 2. Create a feature branch
 3. Follow existing code style and documentation patterns
-4. Test thoroughly in Godot 4.5
+4. Test thoroughly in Godot 4.7
 5. Submit a pull request
 
 ---
@@ -340,6 +340,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ```
    MIT License
    
-   Copyright (c) 2025 Flopper907
+   Copyright (c) 2026 Flopper907
    
    Permission is hereby granted, free of charge, to any person obtaining a copy...
