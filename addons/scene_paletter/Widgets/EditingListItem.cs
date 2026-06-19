@@ -10,10 +10,11 @@ namespace Addons.ScenePaletter.Widgets;
 public partial class EditingListItem : PanelContainer
 {
     [Export] public TextureRect textureRect;
-    [Export] public Button selectButton;
     [Export] public Button deleteButton;
     [Export] public Label nameLabel;
     [Export] public Panel selectionPanel;
+
+    private Action _onSelect;
 
     /// <summary>
     /// Configures the widget with scene data and connects button callbacks.
@@ -24,10 +25,16 @@ public partial class EditingListItem : PanelContainer
     /// <param name="deletion">Callback invoked when the delete button is pressed</param>
     public void SetData(string name, bool selected, Action selection, Action deletion)
     {
-        selectButton.Pressed += selection;
+        _onSelect = selection;
         deleteButton.Pressed += deletion;
         nameLabel.Text = name;
         selectionPanel.Visible = selected;
+    }
+
+    public override void _GuiInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && !mouseEvent.Pressed)
+            _onSelect?.Invoke();
     }
 
     // <summary>

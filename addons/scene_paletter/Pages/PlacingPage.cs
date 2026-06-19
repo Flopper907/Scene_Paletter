@@ -134,7 +134,7 @@ public partial class PlacingPage : Page<PlacingPageData>
 
                 sceneListView.AddChild(item);
 
-                item.SetData(name, index == data.currentElement, () => Select(index));
+                item.SetData(name, index == data.currentElement, uid, () => Select(index));
                 ScenePreviewGenerator.GeneratePreview(
                     scene,
                     plugin.config.PreviewResolution,

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://bj4th048xkwmr" path="res://addons/scene_paletter/DragAndDropScrollContainer.cs" id="3_04ens"]
 
 [node name="EditingPage" node_paths=PackedStringArray("sceneListView", "titleLineEdit", "scrollContainer") instance=ExtResource("1_kkp53")]
+offset_right = -845.0
 script = ExtResource("2_04ens")
 sceneListView = NodePath("VBoxContainer/Content/VBoxContainer/ScrollContainer/GridContainer")
 titleLineEdit = NodePath("VBoxContainer/Header/LineEdit")

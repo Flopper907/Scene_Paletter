@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://c2pgo5wkq2ofi"]
+[gd_scene format=3 uid="uid://c2pgo5wkq2ofi"]
 
 [ext_resource type="Script" uid="uid://cqxa0ww6malhc" path="res://addons/scene_paletter/Widgets/PlacingListItem.cs" id="1_2y3f2"]
 [ext_resource type="Texture2D" uid="uid://bhrg0itorkf3w" path="res://addons/scene_paletter/Icons/Empty.svg" id="2_2y3f2"]
@@ -6,34 +6,33 @@
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqiuw"]
 bg_color = Color(1, 1, 1, 1)
 
-[node name="PlacingListItem" type="PanelContainer" node_paths=PackedStringArray("textureRect", "selectButton", "nameLabel", "selectionPanel")]
+[node name="PlacingListItem" type="PanelContainer" unique_id=1769378864 node_paths=PackedStringArray("textureRect", "nameLabel", "selectionPanel")]
 offset_right = 279.0
 offset_bottom = 306.0
 size_flags_horizontal = 3
 size_flags_vertical = 8
 script = ExtResource("1_2y3f2")
 textureRect = NodePath("MarginContainer/VBoxContainer/TextureRect")
-selectButton = NodePath("PanelContainer/Button")
 nameLabel = NodePath("MarginContainer/VBoxContainer/Label")
 selectionPanel = NodePath("Panel")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=483689610]
 visible = false
 modulate = Color(0.38759997, 0.56138664, 0.76, 1)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_vqiuw")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=193320146]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=250826200]
 layout_mode = 2
 
-[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer"]
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer" unique_id=504000460]
 texture_filter = 1
 layout_mode = 2
 size_flags_vertical = 3
@@ -41,17 +40,10 @@ texture = ExtResource("2_2y3f2")
 expand_mode = 4
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1969254251]
 custom_minimum_size = Vector2(40, 23)
 layout_mode = 2
 size_flags_vertical = 8
 text = "Name Scene"
 horizontal_alignment = 1
 autowrap_mode = 1
-
-[node name="PanelContainer" type="PanelContainer" parent="."]
-modulate = Color(1, 1, 1, 0)
-layout_mode = 2
-
-[node name="Button" type="Button" parent="PanelContainer"]
-layout_mode = 2

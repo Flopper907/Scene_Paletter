@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using Godot;
 using Addons.ScenePaletter.Core;
@@ -64,6 +65,10 @@ public static class SaveLoad
         {
             ExceptionHandler.ThrowSerializationException(typeof(T).Name, nameof(Save));
             ExceptionHandler.ThrowUnexpectedException(ex, nameof(Save));
+        }
+        finally
+        {
+            ClearJsonCache();
         }
     }
 
@@ -129,7 +134,7 @@ public static class SaveLoad
             }
 
             string jsonData = File.ReadAllText(globalPath);
-            T data = JsonSerializer.Deserialize<T>(jsonData);
+            T data = JsonSerializer.Deserialize<T>(jsonData, JsonOptions);
 
             if (data == null)
             {
@@ -143,6 +148,10 @@ public static class SaveLoad
         {
             ExceptionHandler.ThrowUnexpectedException(ex, nameof(Load));
             return new T();
+        }
+        finally
+        {
+            ClearJsonCache();
         }
     }
 
@@ -174,7 +183,7 @@ public static class SaveLoad
             }
 
             string jsonData = File.ReadAllText(globalPath);
-            T data = JsonSerializer.Deserialize<T>(jsonData);
+            T data = JsonSerializer.Deserialize<T>(jsonData, JsonOptions);
 
             if (data == null)
             {
@@ -188,6 +197,10 @@ public static class SaveLoad
         {
             ExceptionHandler.ThrowUnexpectedException(ex, nameof(TryLoad));
             return default;
+        }
+        finally
+        {
+            ClearJsonCache();
         }
     }
 
@@ -228,7 +241,7 @@ public static class SaveLoad
                 try
                 {
                     string jsonData = File.ReadAllText(file);
-                    T data = JsonSerializer.Deserialize<T>(jsonData);
+                    T data = JsonSerializer.Deserialize<T>(jsonData, JsonOptions);
 
                     if (data != null)
                         results.Add(data);
@@ -244,6 +257,10 @@ public static class SaveLoad
         catch (Exception ex)
         {
             ExceptionHandler.ThrowUnexpectedException(ex, nameof(LoadAll));
+        }
+        finally
+        {
+            ClearJsonCache();
         }
 
         return results;
@@ -286,7 +303,7 @@ public static class SaveLoad
                 try
                 {
                     string jsonData = File.ReadAllText(file);
-                    T data = JsonSerializer.Deserialize<T>(jsonData);
+                    T data = JsonSerializer.Deserialize<T>(jsonData, JsonOptions);
 
                     if (data != null)
                         results.Add((data, Path.GetFileName(file)));
@@ -302,6 +319,10 @@ public static class SaveLoad
         catch (Exception ex)
         {
             ExceptionHandler.ThrowUnexpectedException(ex, nameof(LoadAllWithFile));
+        }
+        finally
+        {
+            ClearJsonCache();
         }
 
         return results;
@@ -335,6 +356,36 @@ public static class SaveLoad
         {
             ExceptionHandler.ThrowUnexpectedException(ex, nameof(Delete));
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Clears the internal cache of <see cref="System.Text.Json.JsonSerializerOptions"/> using reflection.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This forces .NET to clear the JSON editor cache. It is particularly useful in a Godot Editor 
+    /// environment to prevent issues with tool scripts, memory leaks, or stale serialization states 
+    /// after hot-reloads.
+    /// </para>
+    /// <para>
+    /// This method is wrapped in a silent try-catch to ensure that if Microsoft changes 
+    /// the internal API structure in future .NET versions, the application will not crash.
+    /// </para>
+    /// </remarks>
+    private static void ClearJsonCache()
+    {
+        try
+        {
+            var assembly = typeof(JsonSerializerOptions).Assembly;
+            var updateHandlerType = assembly.GetType("System.Text.Json.JsonSerializerOptionsUpdateHandler");
+            var clearCacheMethod = updateHandlerType?.GetMethod("ClearCache", BindingFlags.Static | BindingFlags.Public);
+
+            clearCacheMethod?.Invoke(null, new object[] { null });
+        }
+        catch
+        {
+            // Silent fail, falls MS in zukünftigen .NET-Versionen Internals ändert
         }
     }
 }
