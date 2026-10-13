@@ -9,11 +9,13 @@ A Godot 4.7 editor plugin for rapid scene placement using customizable palettes.
 ## Features
 
 - **Multiple Palettes** - Organize scenes into collections for different workflows
+- **Scenes & Global Classes** - Palettes hold `.tscn` scenes as well as C# `[GlobalClass]` Node scripts
 - **2D & 3D Support** - Seamlessly handles both Node2D and Node3D scenes
-- **Smart Placement** - Automatic position and rotation extrapolation based on previously placed nodes
-- **Live Previews** - Real-time preview generation for all palette scenes
-- **Fast Workflow** - Keyboard shortcuts and streamlined UI for rapid placement
-- **Easy Management** - Add, remove, and organize scenes with intuitive controls
+- **Smart Placement** - Position, rotation and scale extrapolation (Linear, Quadratic, Exponential, Circular)
+- **Viewport Preview** - Overlay showing the chain of previous placements and the predicted next position
+- **Drag & Drop** - Add scenes to a palette by dropping them in, or drag palette entries into the scene
+- **Live Previews** - Generated thumbnails for all palette entries
+- **Easy Management** - Add, remove, and organize entries with intuitive controls
 - **Fully Documented** - Complete XML documentation for all classes and methods
 
 ---
@@ -31,7 +33,7 @@ A Godot 4.7 editor plugin for rapid scene placement using customizable palettes.
 
 ### Manual Installation
 1. Download the latest release from [Releases](https://github.com/Flopper907/Scene_Paletter/releases)
-2. Extract the `addons/scene_paletter` folder to your project's `addons/` directory
+2. Extract the `addons/scene_paletter` **and** `addons/plugin_framework` folders to your project's `addons/` directory
 3. Build the project
    - Required on first installation to compile C# code
 4. Enable the plugin in **Project Settings → Plugins**
@@ -51,22 +53,30 @@ A Godot 4.7 editor plugin for rapid scene placement using customizable palettes.
    - Give it a descriptive name (e.g., "Level Objects", "Enemies", "Props")
 
 3. **Add Scenes**
-   - Click **"Add Scenes"** button
-   - Select `.tscn` files from your project
+   - Click **"Edit"**, then add `.tscn` files (or `[GlobalClass]` C# Node scripts) with the add button, or drag them from the FileSystem dock into the list
    - Preview images generate automatically
 
 4. **Start Placing**
-   - Select a scene from your palette
-   - Click **"Place"** to instantiate it in the editor
-   - Each placement automatically calculates the next position based on the previous two placements
+   - Select an entry from your palette
+   - Click **"Place"**, or drag the entry into the scene
+   - Each placement calculates the next pose from the previous placements
 
 ### Placement Behavior
 
-**First placement:** Uses parent node's position  
-**Second placement:** Uses first node's position  
-**Third+ placement:** Extrapolates position using: `position = 2 × last - previous`
+The next pose (position, rotation and scale) is extrapolated from the nodes you placed earlier. Pick the
+method in the **Method** dropdown on the placing page:
 
-This creates predictable, evenly-spaced placement perfect for laying out level elements.
+| Method | Needs | Behavior |
+|--------|-------|----------|
+| Linear | 2 nodes | Constant step: `2 × last - previous` |
+| Quadratic | 3 nodes | Constant second difference: `3 × last - 3 × previous + oldest` |
+| Exponential | 3 nodes | Step is multiplied by the (capped) ratio of the last two steps |
+| Circular | 3 nodes | Continues on the circle through the last three points |
+
+With fewer nodes the placer degrades to Linear, then to a copy of the single node, then to the parent's pose.
+The first placement keeps the scene's authored scale.
+
+Enable the **Preview** checkbox to see the chain of used nodes and the predicted next position in the viewport.
 
 ---
 
@@ -80,8 +90,9 @@ This creates predictable, evenly-spaced placement perfect for laying out level e
 
 **Edit Palette**
 - Select a palette → Click **"Edit"**
-- Rename, add, or remove scenes
-- Multi-select scenes for batch deletion
+- Rename, add, or remove entries
+- Multi-select entries for batch deletion
+- Drag scene files into the list to add them
 
 **Delete Palette**
 - Click the **delete button** next to a palette
@@ -92,12 +103,13 @@ This creates predictable, evenly-spaced placement perfect for laying out level e
 **Basic Placement**
 1. Select a palette
 2. Click a scene to select it
-3. Click **"Place"** button (or use keyboard shortcut)
-4. Scene instantiates at calculated position
+3. Click **"Place"** (or drag the entry into the scene)
+4. The node is instantiated at the calculated pose; placement is undoable
 
 **Advanced Tips**
 - Select a parent node before placing to control hierarchy
 - Place under 2D/3D scene roots for proper type handling
+- Nodes placed under an instanced sub-scene go under the scene root instead
 - Placed nodes automatically get proper owner assignment for scene saving
 
 ### Customization
@@ -108,7 +120,7 @@ This creates predictable, evenly-spaced placement perfect for laying out level e
 ```ini
   [ui]
   min_columns = 1
-  max_columns = 6
+  max_columns = 4
   columns = 2
 ```
 
@@ -137,23 +149,25 @@ Edit `addons/scene_paletter/plugin.cfg` to customize:
 
 ```ini
 [file]
-palette_path = "res://addons/scene_paletter/palettes/"
+widget_path = "res://addons/scene_paletter/Widgets/"
+palette_path = "res://addons/scene_paletter/Palettes/"
 file_extension = ".json"
-id_start = 10000
-id_end = 99999
+id_start = 100000000
+id_end = 999999999
 
 [page]
 pages = {...}  # Internal page definitions
 widgets = {...}  # Internal widget definitions
+initial_docks = {...}  # Which page opens in which dock
 
 [ui]
 min_columns = 1
-max_columns = 6
+max_columns = 4
 columns = 2
 preview_resolution_x = 256
 preview_resolution_y = 256
-preview_margin_x = 10.0
-preview_margin_y = 10.0
+preview_margin_x = 1.05
+preview_margin_y = 1.05
 preview_2d_transparent = true
 preview_3d_transparent = false
 ```
@@ -162,10 +176,10 @@ preview_3d_transparent = false
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `palette_path` | Directory where palettes are saved | `res://addons/scene_paletter/palettes/` |
+| `palette_path` | Directory where palettes are saved | `res://addons/scene_paletter/Palettes/` |
 | `file_extension` | Palette file extension | `.json` |
-| `id_start` / `id_end` | Range for unique palette ID generation | 10000 - 99999 |
-| `min_columns` / `max_columns` | Grid column constraints | 1 - 6 |
+| `id_start` / `id_end` | Range for unique palette ID generation | 100000000 - 999999999 |
+| `min_columns` / `max_columns` | Grid column constraints | 1 - 4 |
 | `columns` | Default column count | 2 |
 | `preview_resolution_x/y` | Preview image size | 256x256 |
 | `preview_margin_x/y` | Camera margin multiplier for previews | 1.05 |
@@ -175,27 +189,20 @@ preview_3d_transparent = false
 
 ## Architecture
 
-Built using a modular architecture with clear separation of concerns:
+Built on a small reusable page/dock framework (`addons/plugin_framework`) plus the plugin itself:
 ```
-Scene Paletter/
-├── Core/                   # Base classes and utilities
-│   ├── Page<T>.cs              # Generic page base class
-│   ├── PageDock.cs             # Page container management
-│   └── ExceptionHandler.cs     # Centralized error handling
+addons/
+├── plugin_framework/       # Reusable framework (separate addon)
+│   ├── Core/                   # Page<T, TPlugin>, PageDock, ExceptionHandler, UIPosition
+│   └── Management/             # ConfigLoader, DockManager, SceneLoader
 │
-├── Management/             # System management
-│   ├── ConfigLoader.cs         # Configuration loading
-│   ├── DockManager.cs          # UI dock management
-│   └── SceneLoader.cs          # Scene resource loading
-│
-├── Pages/                  # UI pages
-│   ├── PalettePage.cs          # Palette selection
-│   ├── PlacingPage.cs          # Scene placement
-│   └── EditingPage.cs          # Palette editing
-│
-├── Widgets/                    # Reusable UI components
-├── Tools/                      # Utility classes
-└── Plugin.cs                   # Main plugin entry point
+└── scene_paletter/
+    ├── Pages/                  # PalettePage, PlacingPage, EditingPage
+    ├── Dialogs/                # DeleteDialog, StartToolDialog
+    ├── Widgets/                # List items
+    ├── Preview/                # Viewport placement preview (2D / 3D)
+    ├── Tools/                  # Extrapolator2D/3D, PaletteEntry, SaveLoad, settings, ...
+    └── Plugin.cs               # Main plugin entry point
 ```
 
 ### Key Design Patterns
@@ -211,14 +218,14 @@ Scene Paletter/
 
 ### Creating Custom Pages
 ```csharp
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 
 public struct MyPageData {
     public string someData;
 }
 
 [Tool]
-public partial class MyPage : Page<MyPageData>
+public partial class MyPage : Page<MyPageData, Plugin>
 {
     public override void Initialize()
     {
@@ -242,12 +249,11 @@ pages = {
 
 ### Adding Configuration Sections
 
-1. Add properties to `ConfigLoader.cs`
-2. Create a `LoadYourSection()` method
-3. Call it from `Init()` inside the `SafeExecute` block
-4. Add corresponding section to `plugin.cfg`
+1. Add properties to `PaletterSettings.cs`
+2. Read them from the `ConfigLoader` in its constructor
+3. Add the corresponding section to `plugin.cfg`
 
-See [ConfigLoader.cs](addons/scene_paletter/Management/ConfigLoader.cs) for examples.
+Plugin-specific keys are read in [PaletterSettings.cs](addons/scene_paletter/Tools/PaletterSettings.cs); see also [ConfigLoader.cs](addons/plugin_framework/Management/ConfigLoader.cs) for examples.
 
 ---
 
@@ -260,12 +266,13 @@ See [ConfigLoader.cs](addons/scene_paletter/Management/ConfigLoader.cs) for exam
 
 ### Scenes don't place correctly
 - Ensure you're placing under a Node2D or Node3D parent
-- Check that selected scenes match the parent type (2D → 2D, 3D → 3D)
+- Check that selected entries match the parent type (2D → 2D, 3D → 3D)
+- Global classes must be `[GlobalClass]`, non-abstract Node types, and the project must be built
 - Verify the edited scene root is valid
 
 ### Previews not generating
 - Check console for resource loading errors
-- Verify scene paths in palette are valid UIDs
+- Verify the scenes in the palette still exist (entries are stored as UIDs)
 - Ensure preview resolution settings are reasonable (<1024px)
 
 ### Palettes not saving
@@ -277,7 +284,7 @@ See [ConfigLoader.cs](addons/scene_paletter/Management/ConfigLoader.cs) for exam
 
 ## Development
 
-Built in **1 Month** as a learning project and for building a template to easily build plugins.
+Started as a learning project and a template for building plugins as a learning project and for building a template to easily build plugins.
 
 ### Tech Stack
 - **Language**: C# (Godot 4.7)
@@ -325,21 +332,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Made with <3 by [Flopper907](https://github.com/Flopper907)**
 
-```
----
-
-## What You Need to Add:
-
-1. **Screenshots/GIF** - Record a quick demo showing:
-   - Creating a palette
-   - Adding scenes
-   - Placing them with position extrapolation
-   - Save as `screenshots/demo.gif`
-
-2. **LICENSE file** - Create a `LICENSE` file with MIT license text:
-```
-   MIT License
-   
-   Copyright (c) 2026 Flopper907
-   
-   Permission is hereby granted, free of charge, to any person obtaining a copy...
