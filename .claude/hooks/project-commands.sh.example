@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Copy this file to project-commands.sh (gitignored) and fill in this project's real commands.
+# post-edit-verify.sh sources it after every Edit/Write and no-ops if it doesn't exist yet.
+#
+# Example for a Node/TypeScript project:
+#   LINT_CMD="npx eslint --fix ."
+#   TEST_CMD="npm test -- --silent"
+#
+# Example for a Python project:
+#   LINT_CMD="ruff check --fix ."
+#   TEST_CMD="pytest -q"
+#
+# LINT_CMD/TEST_CMD each run under a timeout (default 300s) so a hanging command can't stall
+# every single edit forever. Override if your suite genuinely needs longer:
+#   VERIFY_TIMEOUT_SECS=600
+
+LINT_CMD=""
+TEST_CMD=""

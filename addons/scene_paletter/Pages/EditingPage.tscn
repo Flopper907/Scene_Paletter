@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://75ootmri50th"]
 
-[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/scene_paletter/PageBase.tscn" id="1_kkp53"]
+[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/plugin_framework/PageBase.tscn" id="1_kkp53"]
 [ext_resource type="Script" uid="uid://2tagogwvs22u" path="res://addons/scene_paletter/Pages/EditingPage.cs" id="2_04ens"]
 [ext_resource type="Script" uid="uid://bj4th048xkwmr" path="res://addons/scene_paletter/DragAndDropScrollContainer.cs" id="3_04ens"]
 
@@ -79,7 +79,7 @@ text = "+"
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.8
-text = "Add Scene"
+text = "Add Scene / Script"
 
 [connection signal="text_submitted" from="VBoxContainer/Header/LineEdit" to="." method="SetTitle"]
 [connection signal="pressed" from="VBoxContainer/Content/VBoxContainer/HBoxContainer/HBoxContainer/Button" to="." method="Discard"]

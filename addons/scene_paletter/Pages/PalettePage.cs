@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 using Addons.ScenePaletter.Dialogs;
+using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
 using Godot;
 
@@ -29,7 +30,7 @@ public struct PalettePageData
 /// Displays all available palettes and provides controls for creating, selecting, and deleting them.
 /// </summary>
 [Tool]
-public partial class PalettePage : Page<PalettePageData>
+public partial class PalettePage : Page<PalettePageData, Plugin>
 {
     [Export] public VBoxContainer paletteListView;
 
@@ -118,14 +119,14 @@ public partial class PalettePage : Page<PalettePageData>
     {
         if (index < 0 || index >= data.palettes.Count)
         {
-            ExceptionHandler.ThrowInvalidPalettePositionException(index, $"{GetType().Name} {nameof(SelectPalette)}");
+            PaletterErrors.ThrowInvalidPalettePositionException(index, $"{GetType().Name} {nameof(SelectPalette)}");
             return;
         }
 
         Palette palette = data.palettes[index];
         if (palette == null)
         {
-            ExceptionHandler.ThrowMissingPaletteException($"index {index}", $"{GetType().Name} {nameof(SelectPalette)}");
+            PaletterErrors.ThrowMissingPaletteException($"index {index}", $"{GetType().Name} {nameof(SelectPalette)}");
             return;
         }
 
@@ -165,7 +166,7 @@ public partial class PalettePage : Page<PalettePageData>
     {
         if (index < 0 || index >= data.palettes.Count)
         {
-            ExceptionHandler.ThrowInvalidPalettePositionException(index, $"{GetType().Name} {nameof(DeletePalette)}");
+            PaletterErrors.ThrowInvalidPalettePositionException(index, $"{GetType().Name} {nameof(DeletePalette)}");
             return;
         }
 
@@ -174,7 +175,7 @@ public partial class PalettePage : Page<PalettePageData>
             Palette palette = data.palettes[index];
             if (palette == null)
             {
-                ExceptionHandler.ThrowMissingPaletteException($"index {index}", $"{GetType().Name} {nameof(DeletePalette)}");
+                PaletterErrors.ThrowMissingPaletteException($"index {index}", $"{GetType().Name} {nameof(DeletePalette)}");
                 return;
             }
 

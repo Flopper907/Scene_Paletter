@@ -2,7 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using Addons.ScenePaletter.Tools;
 using Addons.ScenePaletter.Widgets;
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 using Addons.ScenePaletter.Dialogs;
 
 namespace Addons.ScenePaletter.Pages;
@@ -58,7 +58,7 @@ public struct EditingPageData
 /// </para>
 /// </remarks>
 [Tool]
-public partial class EditingPage : Page<EditingPageData>
+public partial class EditingPage : Page<EditingPageData, Plugin>
 {
     [Export] public GridContainer sceneListView;
     [Export] public LineEdit titleLineEdit;
@@ -72,7 +72,7 @@ public partial class EditingPage : Page<EditingPageData>
     {
         if (data.palette == null)
         {
-            ExceptionHandler.ThrowMissingPaletteException("null", nameof(Initialize));
+            PaletterErrors.ThrowMissingPaletteException("null", nameof(Initialize));
             dock.SwitchPage("PalettePage", null);
             return;
         }
@@ -80,7 +80,7 @@ public partial class EditingPage : Page<EditingPageData>
         Title = "Scene Paletter" + (data.old.Equals(data.palette) ? "" : "*");
 
         titleLineEdit.Text = data.palette.Name;
-        sceneListView.Columns = plugin.config.Columns;
+        sceneListView.Columns = plugin.settings.Columns;
 
         PackedScene packedScene = plugin.sceneLoader?.GetWidget("EditingListItem");
         if (packedScene == null)
@@ -96,22 +96,9 @@ public partial class EditingPage : Page<EditingPageData>
                 int index = i;
                 string uid = data.palette.Paths[index];
 
-                PackedScene scene = GD.Load<PackedScene>(uid);
-                if (scene == null)
-                {
-                    ExceptionHandler.ThrowResourceLoadException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
-                    continue;
-                }
-
-                Node node = scene.Instantiate();
-                if (node == null)
-                {
-                    ExceptionHandler.ThrowSceneInstantiationException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
-                    continue;
-                }
-
-                string name = node.Name;
-                node.Free();
+                PaletteEntryInfo info = PaletteEntry.Resolve(uid);
+                if (info.Error != null)
+                    ExceptionHandler.ThrowResourceLoadException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index} - {info.Error}");
 
                 EditingListItem item = packedScene.Instantiate() as EditingListItem;
                 if (item == null)
@@ -122,16 +109,44 @@ public partial class EditingPage : Page<EditingPageData>
 
                 sceneListView.AddChild(item);
 
-                item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index),
-                    () => ShowDeleteDialog(index)
-                );
-                ScenePreviewGenerator.GeneratePreview(
-                    scene,
-                    plugin.config.PreviewResolution,
-                    plugin.config.PreviewMargin,
-                    node is Node2D ? plugin.config.PreviewTransparent2D : plugin.config.PreviewTransparent3D,
-                    item.SetTexture
-                );
+                if (info.Error != null)
+                {
+                    item.SetData("Missing: " + uid, data.selectedElements.Contains(index), () => ToggleSelect(index),
+                        () => ShowDeleteDialog(index)
+                    );
+                    item.SetTexture(GD.Load<Texture2D>("res://addons/scene_paletter/Icons/Empty.svg"));
+                }
+                else if (info.Resource is PackedScene scene)
+                {
+                    Node node = scene.Instantiate();
+                    if (node == null)
+                    {
+                        ExceptionHandler.ThrowSceneInstantiationException(uid, $"{GetType().Name} {nameof(Initialize)} - Index: {index}");
+                        item.QueueFree();
+                        continue;
+                    }
+
+                    string name = node.Name;
+                    node.Free();
+
+                    item.SetData(name, data.selectedElements.Contains(index), () => ToggleSelect(index),
+                        () => ShowDeleteDialog(index)
+                    );
+                    ScenePreviewGenerator.GeneratePreview(
+                        scene,
+                        plugin.settings.PreviewResolution,
+                        plugin.settings.PreviewMargin,
+                        node is Node2D ? plugin.settings.PreviewTransparent2D : plugin.settings.PreviewTransparent3D,
+                        item.SetTexture
+                    );
+                }
+                else
+                {
+                    item.SetData(info.Name, data.selectedElements.Contains(index), () => ToggleSelect(index),
+                        () => ShowDeleteDialog(index)
+                    );
+                    item.SetTexture(PaletteEntry.GetIcon(info));
+                }
             }
             catch (System.Exception ex)
             {
@@ -234,7 +249,7 @@ public partial class EditingPage : Page<EditingPageData>
     {
         List<string> newPaths = [.. data.palette.Paths];
 
-        if (index < 0 || index > newPaths.Count) return;
+        if (index < 0 || index >= newPaths.Count) return;
 
         newPaths.Remove(data.palette.Paths[index]);
         for (int i = 0; i < data.selectedElements.Count; i++)
@@ -268,7 +283,7 @@ public partial class EditingPage : Page<EditingPageData>
     /// </summary>
     public void Add()
     {
-        SetupFileDialog("Select Scene Files", "*.tscn", "Godot Scene Files", OnSceneFilesSelected);
+        SetupFileDialog("Select Scene or Script Files", "*.tscn,*.cs", "Scenes and C# scripts", OnSceneFilesSelected);
     }
 
     /// <summary>
@@ -276,7 +291,7 @@ public partial class EditingPage : Page<EditingPageData>
     /// </summary>
     public void AddColumn()
     {
-        plugin.config.AddColumn();
+        plugin.settings.AddColumn();
         ReloadWithoutScrollSave();
     }
 
@@ -285,7 +300,7 @@ public partial class EditingPage : Page<EditingPageData>
     /// </summary>
     public void RemoveColumn()
     {
-        plugin.config.RemoveColumn();
+        plugin.settings.RemoveColumn();
         ReloadWithoutScrollSave();
     }
 
@@ -299,11 +314,10 @@ public partial class EditingPage : Page<EditingPageData>
         if (paths == null) return;
         foreach (string path in paths)
         {
-            long uid = ResourceLoader.GetResourceUid(path);
-            string uidString = ResourceUid.IdToText(uid);
-            if (!data.palette.Paths.Contains(uidString))
+            if (!PaletteEntry.TryValidateForAdd(path, out string uid)) continue;
+            if (!data.palette.Paths.Contains(uid))
             {
-                data.palette.Paths.Add(uidString);
+                data.palette.Paths.Add(uid);
             }
         }
 

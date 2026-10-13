@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Godot;
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 
 namespace Addons.ScenePaletter.Tools;
 

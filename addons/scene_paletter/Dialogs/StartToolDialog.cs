@@ -1,11 +1,11 @@
 using Godot;
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 using Addons.ScenePaletter.Tools;
 
 namespace Addons.ScenePaletter.Dialogs;
 
 [Tool]
-public partial class StartToolDialog : Page<object>
+public partial class StartToolDialog : Page<object, Plugin>
 {
     public override void Initialize()
     {

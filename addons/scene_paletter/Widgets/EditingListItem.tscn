@@ -34,6 +34,7 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer" unique_id=1626052956]
+texture_filter = 1
 layout_mode = 2
 texture = ExtResource("2_h7wtf")
 expand_mode = 4

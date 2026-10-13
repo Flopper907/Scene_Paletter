@@ -40,7 +40,7 @@ public partial class DragAndDropScrollContainer : ScrollContainer
 
         foreach (string file in files)
         {
-            if (file.EndsWith(".tscn"))
+            if (file.EndsWith(".tscn") || file.EndsWith(".cs"))
                 return true;
         }
 
@@ -61,7 +61,7 @@ public partial class DragAndDropScrollContainer : ScrollContainer
 
         foreach (string file in files)
         {
-            if (file.EndsWith(".tscn"))
+            if (file.EndsWith(".tscn") || file.EndsWith(".cs"))
                 validScenes.Add(file);
         }
 

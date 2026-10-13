@@ -1,13 +1,15 @@
 [gd_scene load_steps=3 format=3 uid="uid://xjihbdk14gmd"]
 
-[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/scene_paletter/PageBase.tscn" id="1_rpqou"]
+[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/plugin_framework/PageBase.tscn" id="1_rpqou"]
 [ext_resource type="Script" uid="uid://b6veyigay1ry5" path="res://addons/scene_paletter/Pages/PlacingPage.cs" id="2_i5epu"]
 
-[node name="PlacingPage" node_paths=PackedStringArray("sceneListView", "titleLabel", "scrollContainer") instance=ExtResource("1_rpqou")]
+[node name="PlacingPage" node_paths=PackedStringArray("sceneListView", "titleLabel", "scrollContainer", "methodButton", "previewButton") instance=ExtResource("1_rpqou")]
 script = ExtResource("2_i5epu")
 sceneListView = NodePath("VBoxContainer/Content/VBoxContainer/ScrollContainer/GridContainer")
 titleLabel = NodePath("VBoxContainer/Header/Label")
 scrollContainer = NodePath("VBoxContainer/Content/VBoxContainer/ScrollContainer")
+methodButton = NodePath("VBoxContainer/Footer/VBoxContainer/MethodRow/OptionButton")
+previewButton = NodePath("VBoxContainer/Footer/VBoxContainer/MethodRow/CheckButton")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Content" index="0"]
 layout_mode = 1
@@ -48,22 +50,53 @@ layout_mode = 2
 size_flags_horizontal = 3
 columns = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Footer" index="0"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Footer" index="0"]
 layout_mode = 2
 
-[node name="Button" type="Button" parent="VBoxContainer/Footer/HBoxContainer" index="0"]
+[node name="MethodRow" type="HBoxContainer" parent="VBoxContainer/Footer/VBoxContainer" index="0"]
+layout_mode = 2
+
+[node name="OptionButton" type="OptionButton" parent="VBoxContainer/Footer/VBoxContainer/MethodRow" index="0"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "How the next node continues the placed ones.
+Linear: last 2 nodes. Quadratic, Exponential, Circular: last 3 nodes.
+With fewer nodes it falls back to Linear, then a copy, then the parent's pose."
+clip_text = true
+fit_to_longest_item = false
+selected = 0
+item_count = 4
+popup/item_0/text = "Linear"
+popup/item_0/id = 0
+popup/item_1/text = "Quadratic"
+popup/item_1/id = 1
+popup/item_2/text = "Exponential"
+popup/item_2/id = 2
+popup/item_3/text = "Circular"
+popup/item_3/id = 3
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/Footer/VBoxContainer/MethodRow" index="1"]
+layout_mode = 2
+tooltip_text = "Shows the nodes the next placement continues from and its predicted position in the 2D/3D viewport."
+button_pressed = true
+text = "Preview"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Footer/VBoxContainer" index="1"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="VBoxContainer/Footer/VBoxContainer/HBoxContainer" index="0"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.1
 text = "-"
 
-[node name="Button2" type="Button" parent="VBoxContainer/Footer/HBoxContainer" index="1"]
+[node name="Button2" type="Button" parent="VBoxContainer/Footer/VBoxContainer/HBoxContainer" index="1"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.1
 text = "+"
 
-[node name="Button3" type="Button" parent="VBoxContainer/Footer/HBoxContainer" index="2"]
+[node name="Button3" type="Button" parent="VBoxContainer/Footer/VBoxContainer/HBoxContainer" index="2"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.8
@@ -71,6 +104,8 @@ text = "Place"
 
 [connection signal="pressed" from="VBoxContainer/Content/VBoxContainer/HBoxContainer/HBoxContainer/Button" to="." method="Back"]
 [connection signal="pressed" from="VBoxContainer/Content/VBoxContainer/HBoxContainer/HBoxContainer/Button2" to="." method="Edit"]
-[connection signal="pressed" from="VBoxContainer/Footer/HBoxContainer/Button" to="." method="RemoveColumn"]
-[connection signal="pressed" from="VBoxContainer/Footer/HBoxContainer/Button2" to="." method="AddColumn"]
-[connection signal="pressed" from="VBoxContainer/Footer/HBoxContainer/Button3" to="." method="Place"]
+[connection signal="pressed" from="VBoxContainer/Footer/VBoxContainer/HBoxContainer/Button" to="." method="RemoveColumn"]
+[connection signal="pressed" from="VBoxContainer/Footer/VBoxContainer/HBoxContainer/Button2" to="." method="AddColumn"]
+[connection signal="pressed" from="VBoxContainer/Footer/VBoxContainer/HBoxContainer/Button3" to="." method="Place"]
+[connection signal="item_selected" from="VBoxContainer/Footer/VBoxContainer/MethodRow/OptionButton" to="." method="SelectMethod"]
+[connection signal="toggled" from="VBoxContainer/Footer/VBoxContainer/MethodRow/CheckButton" to="." method="SetPreview"]

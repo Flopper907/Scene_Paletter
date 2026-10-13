@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bgiqhjxdjrsv7"]
 
-[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/scene_paletter/PageBase.tscn" id="1_qq8p4"]
+[ext_resource type="PackedScene" uid="uid://dy004jiixhax6" path="res://addons/plugin_framework/PageBase.tscn" id="1_qq8p4"]
 [ext_resource type="Script" uid="uid://c80gkftifl0to" path="res://addons/scene_paletter/Dialogs/DeleteDialog.cs" id="2_a600t"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_qq8p4"]

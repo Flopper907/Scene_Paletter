@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 using System.Collections.Concurrent;
 
 namespace Addons.ScenePaletter.Tools;
@@ -26,14 +26,20 @@ namespace Addons.ScenePaletter.Tools;
 ///   <item>Checks cache for existing preview</item>
 ///   <item>Creates a <c>SubViewport</c> with the specified settings</item>
 ///   <item>Instanciates the scene and calculates bounds</item>
+///   <item>If the root is neither <c>Node2D</c> nor <c>Node3D</c>, the first 3D (else 2D) descendant decides the render mode</item>
+///   <item>If there is nothing to render or the bounds are zero, caches the root node's class icon and invokes the callback with it (no render)</item>
 ///   <item>Sets up appropriate camera (2D/3D) and lighting</item>
 ///   <item>Renders the scene and extracts the texture</item>
 ///   <item>Stores the result in cache and invokes the callback</item>
 /// </list>
 /// </para>
+/// <para>
+/// Scenes with zero 2D/3D bounds (e.g. a bare <c>Node3D</c> root without meshes) get the editor icon of
+/// the root node's native class instead of a rendered preview; custom script icons are not used.
+/// </para>
 /// <para>Logs via <c>ExceptionHandler.ThrowInvalidResourceTypeException</c> if <c>scene</c> is <c>null</c>.</para>
 /// <para>Logs via <c>ExceptionHandler.ThrowSceneInstantiationException</c> if scene instantiation fails.</para>
-/// <para>Logs via <c>ExceptionHandler.ThrowPreviewGenerationException</c> if texture generation fails.</para>
+/// <para>Logs via <c>PaletterErrors.ThrowPreviewGenerationException</c> if texture generation fails.</para>
 /// <para>Logs via <c>ExceptionHandler.ThrowUnexpectedException</c> for any other errors.</para>
 /// <para>
 /// <example>
@@ -75,6 +81,10 @@ public static class ScenePreviewGenerator
     /// <para>
     /// The method uses Godot's rendering pipeline and waits for the next frame to ensure
     /// the scene is fully rendered before extracting the texture.
+    /// </para>
+    /// <para>
+    /// If the scene's 2D/3D bounds are zero, the editor icon of the root node's native class is
+    /// cached and passed to the callback instead of a rendered preview.
     /// </para>
     /// </remarks>
     public static async void GeneratePreview(
@@ -123,13 +133,26 @@ public static class ScenePreviewGenerator
 
             subViewport.AddChild(instance);
 
-            if (instance is Node2D node2D)
+            bool rendered = false;
+            Node reference = instance is Node2D or Node3D
+                ? instance
+                : FindDescendant<Node3D>(instance) ?? (Node)FindDescendant<Node2D>(instance);
+
+            if (reference is Node2D node2D)
             {
-                SetupRender2D(subViewport, node2D, size, margin);
+                rendered = SetupRender2D(subViewport, node2D, size, margin);
             }
-            else if (instance is Node3D node3D)
+            else if (reference is Node3D node3D)
             {
-                SetupRender3D(subViewport, node3D, size, margin);
+                rendered = SetupRender3D(subViewport, node3D, size, margin);
+            }
+
+            if (!rendered)
+            {
+                Texture2D icon = EditorInterface.Singleton.GetEditorTheme().GetIcon(instance.GetClass(), "EditorIcons");
+                cache[scene] = icon;
+                action?.Invoke(icon);
+                return;
             }
 
             Node root = ((SceneTree)Engine.GetMainLoop()).Root;
@@ -150,14 +173,14 @@ public static class ScenePreviewGenerator
             Texture2D texture = subViewport.GetTexture();
             if (texture == null)
             {
-                ExceptionHandler.ThrowPreviewGenerationException(scene.ResourcePath, nameof(GeneratePreview));
+                PaletterErrors.ThrowPreviewGenerationException(scene.ResourcePath, nameof(GeneratePreview));
                 return;
             }
 
             Image image = texture.GetImage();
             if (image == null)
             {
-                ExceptionHandler.ThrowPreviewGenerationException(scene.ResourcePath, nameof(GeneratePreview));
+                PaletterErrors.ThrowPreviewGenerationException(scene.ResourcePath, nameof(GeneratePreview));
                 return;
             }
 
@@ -178,6 +201,28 @@ public static class ScenePreviewGenerator
     }
 
     /// <summary>
+    /// Finds the first descendant of type <typeparamref name="T"/> in breadth-first order.
+    /// </summary>
+    /// <returns>The matching node, or <c>null</c> if there is none.</returns>
+    private static T FindDescendant<T>(Node root) where T : Node
+    {
+        Queue<Node> queue = new();
+        queue.Enqueue(root);
+
+        while (queue.Count > 0)
+        {
+            foreach (Node child in queue.Dequeue().GetChildren())
+            {
+                if (child is T match)
+                    return match;
+                queue.Enqueue(child);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Sets up the SubViewport for rendering a 2D scene.
     /// </summary>
     /// <param name="subViewport">The viewport to configure.</param>
@@ -189,11 +234,9 @@ public static class ScenePreviewGenerator
     /// Calculates the bounds of all child nodes and sets up a Camera2D to frame
     /// the entire scene content with the specified margin.
     /// </para>
-    /// <para>
-    /// Logs via <c>ExceptionHandler.ThrowInvalidPreviewSettingsException</c> if bounds are zero.
-    /// </para>
     /// </remarks>
-    private static void SetupRender2D(SubViewport subViewport, Node2D node, Vector2I size, Vector2 margin)
+    /// <returns><c>false</c> if the bounds are zero (nothing was added to the viewport); otherwise <c>true</c>.</returns>
+    private static bool SetupRender2D(SubViewport subViewport, Node2D node, Vector2I size, Vector2 margin)
     {
         Vector2 minPos = new(float.PositiveInfinity, float.PositiveInfinity);
         Vector2 maxPos = new(float.NegativeInfinity, float.NegativeInfinity);
@@ -214,26 +257,24 @@ public static class ScenePreviewGenerator
             }
         }
 
+        Vector2 center = (minPos + maxPos) / 2;
+        Vector2 bounds = maxPos - minPos;
+
+        if (bounds == Vector2.Zero)
+            return false;
+
         Camera2D camera = new Camera2D
         {
             Enabled = true
         };
         subViewport.AddChild(camera);
 
-        Vector2 center = (minPos + maxPos) / 2;
-        Vector2 bounds = maxPos - minPos;
-
-        if (bounds == Vector2.Zero)
-        {
-            ExceptionHandler.ThrowInvalidPreviewSettingsException("2D bounds are zero", nameof(SetupRender2D));
-            return;
-        }
-
         camera.Position = center;
 
         float zoomX = size.X / (bounds.X * margin.X);
         float zoomY = size.Y / (bounds.Y * margin.Y);
         camera.Zoom = Vector2.One * Mathf.Min(zoomX, zoomY);
+        return true;
     }
 
     /// <summary>
@@ -248,11 +289,9 @@ public static class ScenePreviewGenerator
     /// Calculates the bounds of all child nodes, adds a directional light, and sets up
     /// a Camera3D to frame the entire scene content with the specified margin.
     /// </para>
-    /// <para>
-    /// Logs via <c>ExceptionHandler.ThrowInvalidPreviewSettingsException</c> if bounds are zero.
-    /// </para>
     /// </remarks>
-    private static void SetupRender3D(SubViewport subViewport, Node3D node, Vector2I size, Vector2 margin)
+    /// <returns><c>false</c> if the bounds are zero (nothing was added to the viewport); otherwise <c>true</c>.</returns>
+    private static bool SetupRender3D(SubViewport subViewport, Node3D node, Vector2I size, Vector2 margin)
     {
         Vector3 minPos = new(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
         Vector3 maxPos = new(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
@@ -277,10 +316,7 @@ public static class ScenePreviewGenerator
         Vector3 bounds = maxPos - minPos;
 
         if (bounds == Vector3.Zero)
-        {
-            ExceptionHandler.ThrowInvalidPreviewSettingsException("3D bounds are zero", nameof(SetupRender3D));
-            return;
-        }
+            return false;
 
         DirectionalLight3D light = new()
         {
@@ -300,6 +336,7 @@ public static class ScenePreviewGenerator
 
         subViewport.AddChild(camera);
         camera.LookAtFromPosition(position, center, Vector3.Up);
+        return true;
     }
 
     /// <summary>

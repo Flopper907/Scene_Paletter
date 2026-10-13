@@ -1,5 +1,5 @@
 using Godot;
-using Addons.ScenePaletter.Core;
+using Addons.PluginFramework.Core;
 using System;
 using System.ComponentModel;
 
@@ -18,7 +18,7 @@ public struct DeleteDialogData
 }
 
 [Tool]
-public partial class DeleteDialog : Page<DeleteDialogData>
+public partial class DeleteDialog : Page<DeleteDialogData, Plugin>
 {
     [Export] public Button cancelButton;
     [Export] public Button deleteButton;

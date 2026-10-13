@@ -51,7 +51,7 @@ public class Palette
     {
         Palette palette = new Palette();
         palette.Name = "Untitled";
-        palette.UID = IDGenerator.GenerateID(plugin.config.IdStart, plugin.config.IdEnd).ToString();
+        palette.UID = IDGenerator.GenerateID(plugin.settings.IdStart, plugin.settings.IdEnd).ToString();
         palette.Position = position;
         return palette;
     }
@@ -64,10 +64,10 @@ public class Palette
     public static List<Palette> LoadPalettes(Plugin plugin)
     {
         List<Palette> palettes = new List<Palette>();
-        var paletteData = SaveLoad.LoadAllWithFile<Palette>(plugin.config.PalettePath, ".json");
+        var paletteData = SaveLoad.LoadAllWithFile<Palette>(plugin.settings.PalettePath, ".json");
         foreach (var p in paletteData)
         {
-            p.data.UID = p.filename.Replace(plugin.config.FileExtension, "");
+            p.data.UID = p.filename.Replace(plugin.settings.FileExtension, "");
             palettes.Add(p.data);
         }
 
@@ -83,7 +83,7 @@ public class Palette
     /// <param name="palette">Palette to save</param>
     public static void SavePalette(Plugin plugin, Palette palette)
     {
-        SaveLoad.Save(palette, plugin.config.PalettePath + palette.UID + plugin.config.FileExtension);
+        SaveLoad.Save(palette, plugin.settings.PalettePath + palette.UID + plugin.settings.FileExtension);
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class Palette
     /// <param name="palette">Palette to delete</param>
     public static void DeletePalette(Plugin plugin, Palette palette)
     {
-        SaveLoad.Delete(plugin.config.PalettePath + palette.UID + plugin.config.FileExtension);
+        SaveLoad.Delete(plugin.settings.PalettePath + palette.UID + plugin.settings.FileExtension);
     }
 
     /// <summary>
